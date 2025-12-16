@@ -56,6 +56,7 @@ public class Arena implements IArena {
         this.config = GameConfig.getInstance();
         this.respawnTargets = new HashMap<>();
         this.placedBlocks = new java.util.HashSet<>();
+        this.blastProofBlocks = new java.util.HashSet<>(); // NEW
         this.publicGenerators = new ArrayList<>();
     }
 
@@ -63,13 +64,23 @@ public class Arena implements IArena {
     private final List<OreGenerator> publicGenerators;
 
     private final java.util.Set<BlockPos> placedBlocks;
+    private final java.util.Set<BlockPos> blastProofBlocks; // NEW
 
     public void recordPlacedBlock(BlockPos pos) {
         placedBlocks.add(pos);
     }
 
+    public void recordBlastProof(BlockPos pos) {
+        blastProofBlocks.add(pos);
+        recordPlacedBlock(pos);
+    }
+
     public boolean isBlockPlayerPlaced(BlockPos pos) {
         return placedBlocks.contains(pos);
+    }
+
+    public boolean isBlastProof(BlockPos pos) {
+        return blastProofBlocks.contains(pos);
     }
 
     // API Accessor for TwoDimensionalBedWars to use
@@ -91,6 +102,14 @@ public class Arena implements IArena {
 
         public void recordPlacedBlock(BlockPos pos) {
             arena.recordPlacedBlock(pos);
+        }
+
+        public void recordBlastProof(BlockPos pos) {
+            arena.recordBlastProof(pos);
+        }
+
+        public boolean isBlastProof(BlockPos pos) {
+            return arena.isBlastProof(pos);
         }
     }
 
@@ -134,6 +153,7 @@ public class Arena implements IArena {
         playerTeamMap.remove(player.getUuid());
         waitingPlayers.remove(player.getUuid());
         preferredTeams.remove(player.getUuid());
+        player.clearStatusEffects(); // Clear all potion effects when leaving
     }
 
     @Override
@@ -420,6 +440,7 @@ public class Arena implements IArena {
         playerTeamMap.clear();
         waitingPlayers.clear();
         placedBlocks.clear();
+        blastProofBlocks.clear(); // NEW
 
         // No triggerMapRestore here, as we do it on start.
         status = GameStatus.WAITING;
@@ -499,20 +520,11 @@ public class Arena implements IArena {
         spawnPublicGenerators(world, c2, config.arena2NetheriteGenerators, config.netheriteGenerator,
                 Items.NETHERITE_INGOT);
 
-        // Assign Players
-        List<UUID> unassigned = new ArrayList<>();
-        // ... (rest of method unchanged, relying on existing structure below this
-        // replacement block?)
-        // Actually, replacing initialize implies replacing the whole block.
-        // Let's cut it off before 'Assign Players' to keep it cleaner?
-        // No, I must replace contiguous block.
-        // The original code has 'Assign Players' right after team creation.
-
         // Pass 1: Preferences
+        List<UUID> unassigned = new ArrayList<>();
         for (UUID uuid : waitingPlayers) {
             String updatedPref = preferredTeams.get(uuid);
-            if (updatedPref == null)
-                continue; // Skip players who didn't select a team
+            // If pref is null, treat as unassigned
 
             boolean assigned = false;
             if (updatedPref != null) {
@@ -547,8 +559,6 @@ public class Arena implements IArena {
             publicGenerators.add(new OreGenerator(pos, item, setting.amount, setting.delaySeconds, setting.limit));
         }
     }
-
-    // Old createTeam and helper methods removed - moved to BedWarsTeam factory.
 
     public boolean handleBlockBreak(ServerPlayerEntity player, BlockPos pos, BlockState state) {
         if (status != GameStatus.PLAYING)

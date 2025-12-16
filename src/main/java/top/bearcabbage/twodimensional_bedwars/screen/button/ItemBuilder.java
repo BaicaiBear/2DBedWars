@@ -14,6 +14,7 @@ import java.util.List;
 
 public class ItemBuilder {
     private ItemStack stack = ItemStack.EMPTY;
+
     private ItemBuilder() {
     }
 
@@ -23,6 +24,12 @@ public class ItemBuilder {
 
     public static ItemBuilder start(Item item) {
         return new ItemBuilder().item(item);
+    }
+
+    public static ItemBuilder start(ItemStack stack) {
+        ItemBuilder builder = new ItemBuilder();
+        builder.stack = stack;
+        return builder;
     }
 
     public ItemBuilder item(Item item) {

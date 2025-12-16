@@ -7,23 +7,24 @@ import net.minecraft.item.Items;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
+import net.minecraft.entity.EquipmentSlot;
+import net.minecraft.registry.RegistryKeys;
+import net.minecraft.enchantment.Enchantments;
 import top.bearcabbage.twodimensional_bedwars.api.ITeam;
 
 public class BedWarsPlayer {
     private final UUID uuid;
     private final ITeam team;
 
-    // Tools: 0=None, 1=Wooden, 2=Stone, 3=Iron, 4=Diamond
-    private int swordLevel = 1; // Default Wooden
+    // Tools
+    private int swordLevel = 1;
     private int pickaxeLevel = 0;
     private int axeLevel = 0;
-
-    // State: 0=Spectator, 1=Alive
     private int state = 0;
-
-    // Stats
     private int kills = 0;
     private int deaths = 0;
+    private int armorLevel = 0;
+    private boolean hasShears = false;
 
     public BedWarsPlayer(UUID uuid, ITeam team) {
         this.uuid = uuid;
@@ -62,12 +63,49 @@ public class BedWarsPlayer {
         this.deaths++;
     }
 
+    // Tool Getters
+    public int getSwordLevel() {
+        return swordLevel;
+    }
+
+    public int getPickaxeLevel() {
+        return pickaxeLevel;
+    }
+
+    public int getAxeLevel() {
+        return axeLevel;
+    }
+
     public void saveLobbyState(ServerPlayerEntity player) {
         top.bearcabbage.twodimensional_bedwars.data.BedWarsPlayerData.saveBackup(player);
     }
 
     public void restoreLobbyState(ServerPlayerEntity player) {
         top.bearcabbage.twodimensional_bedwars.data.BedWarsPlayerData.restoreBackup(player);
+    }
+
+    public void setArmorLevel(int level) {
+        if (level > this.armorLevel)
+            this.armorLevel = level;
+    }
+
+    public int getArmorLevel() {
+        return armorLevel;
+    }
+
+    public void tryUpgradeArmor(ServerPlayerEntity player, int level) {
+        if (level > this.armorLevel) {
+            this.armorLevel = level;
+            giveArmor(player);
+        }
+    }
+
+    public void setHasShears(boolean has) {
+        this.hasShears = has;
+    }
+
+    public boolean hasShears() {
+        return hasShears;
     }
 
     public boolean tryUpgradeSword(ServerPlayerEntity player, int newLevel) {
@@ -84,7 +122,7 @@ public class BedWarsPlayer {
         if (newLevel > pickaxeLevel) {
             pickaxeLevel = newLevel;
             removeItemsByType(player, "PICKAXE");
-            givePickaxe(player);
+            givePickaxe(player, (ServerWorld) player.getWorld());
             return true;
         }
         return false;
@@ -94,7 +132,7 @@ public class BedWarsPlayer {
         if (newLevel > axeLevel) {
             axeLevel = newLevel;
             removeItemsByType(player, "_AXE");
-            giveAxe(player);
+            giveAxe(player, (ServerWorld) player.getWorld());
             return true;
         }
         return false;
@@ -112,14 +150,16 @@ public class BedWarsPlayer {
         tryUpgradeAxe(player, axeLevel + 1);
     }
 
-    // Apply tools to player inventory (clears existing tools first if needed, or
-    // just sets slots)
     public void applyTools(ServerPlayerEntity player) {
-        // Remove old tools first to be safe? Or assume empty on respawn.
-        // On respawn it's empty.
         giveSword(player);
-        givePickaxe(player);
-        giveAxe(player);
+        givePickaxe(player, (ServerWorld) player.getWorld());
+        giveAxe(player, (ServerWorld) player.getWorld());
+        giveArmor(player);
+        if (hasShears) {
+            if (!player.getInventory().contains(new ItemStack(Items.SHEARS))) {
+                player.getInventory().offerOrDrop(new ItemStack(Items.SHEARS));
+            }
+        }
     }
 
     private void giveSword(ServerPlayerEntity player) {
@@ -128,36 +168,69 @@ public class BedWarsPlayer {
             player.getInventory().offerOrDrop(item);
     }
 
-    private void givePickaxe(ServerPlayerEntity player) {
-        ItemStack item = getPickaxeItem();
+    private void givePickaxe(ServerPlayerEntity player, ServerWorld world) {
+        ItemStack item = getPickaxeItem(world);
         if (item != null)
             player.getInventory().offerOrDrop(item);
     }
 
-    private void giveAxe(ServerPlayerEntity player) {
-        ItemStack item = getAxeItem();
+    private void giveAxe(ServerPlayerEntity player, ServerWorld world) {
+        ItemStack item = getAxeItem(world);
         if (item != null)
             player.getInventory().offerOrDrop(item);
+    }
+
+    public void giveArmor(ServerPlayerEntity player) {
+        ItemStack boots = ItemStack.EMPTY;
+        ItemStack leggings = ItemStack.EMPTY;
+        ItemStack chestplace = ItemStack.EMPTY;
+        ItemStack helmet = ItemStack.EMPTY;
+
+        switch (armorLevel) {
+            case 1 -> {
+                boots = new ItemStack(Items.CHAINMAIL_BOOTS);
+                leggings = new ItemStack(Items.CHAINMAIL_LEGGINGS);
+                chestplace = new ItemStack(Items.CHAINMAIL_CHESTPLATE);
+                helmet = new ItemStack(Items.CHAINMAIL_HELMET);
+            }
+            case 2 -> {
+                boots = new ItemStack(Items.IRON_BOOTS);
+                leggings = new ItemStack(Items.IRON_LEGGINGS);
+                chestplace = new ItemStack(Items.IRON_CHESTPLATE);
+                helmet = new ItemStack(Items.IRON_HELMET);
+            }
+            case 3 -> {
+                boots = new ItemStack(Items.DIAMOND_BOOTS);
+                leggings = new ItemStack(Items.DIAMOND_LEGGINGS);
+                chestplace = new ItemStack(Items.DIAMOND_CHESTPLATE);
+                helmet = new ItemStack(Items.DIAMOND_HELMET);
+            }
+        }
+
+        if (!boots.isEmpty())
+            player.equipStack(EquipmentSlot.FEET, boots);
+        if (!leggings.isEmpty())
+            player.equipStack(EquipmentSlot.LEGS, leggings);
+        if (!chestplace.isEmpty())
+            player.equipStack(EquipmentSlot.CHEST, chestplace);
+        if (!helmet.isEmpty())
+            player.equipStack(EquipmentSlot.HEAD, helmet);
     }
 
     private void removeItemsByType(ServerPlayerEntity player, String suffix) {
         for (int i = 0; i < player.getInventory().size(); i++) {
             ItemStack stack = player.getInventory().getStack(i);
-            if (!stack.isEmpty()) {
-                String id = stack.getItem().toString().toUpperCase(); // e.g. "diamond_sword"
-                // getName().getString() might be localized. toString() on Item usually gives
-                // "sword", "diamond_sword"?
-                // Registry key is reliable.
-                // But let's use check:
-                if (isToolType(stack, suffix)) {
-                    player.getInventory().removeStack(i);
-                }
+            if (!stack.isEmpty() && isToolType(stack, suffix)) {
+                player.getInventory().removeStack(i);
             }
         }
     }
 
     private boolean isToolType(ItemStack stack, String typeSuffix) {
         String name = net.minecraft.registry.Registries.ITEM.getId(stack.getItem()).getPath().toUpperCase();
+        if ("SWORD".equals(typeSuffix) && stack.getItem() == Items.STICK)
+            return false;
+
         if ("SWORD".equals(typeSuffix))
             return name.endsWith("_SWORD");
         if ("PICKAXE".equals(typeSuffix))
@@ -177,34 +250,52 @@ public class BedWarsPlayer {
         };
     }
 
-    private ItemStack getPickaxeItem() {
-        return switch (pickaxeLevel) {
+    private ItemStack getPickaxeItem(ServerWorld world) {
+        ItemStack stack = switch (pickaxeLevel) {
             case 1 -> new ItemStack(Items.WOODEN_PICKAXE);
             case 2 -> new ItemStack(Items.STONE_PICKAXE);
             case 3 -> new ItemStack(Items.IRON_PICKAXE);
             case 4 -> new ItemStack(Items.DIAMOND_PICKAXE);
-            default -> null;
+            default -> ItemStack.EMPTY;
         };
+
+        if (!stack.isEmpty()) {
+            int eff = (pickaxeLevel == 1 || pickaxeLevel == 2) ? 1
+                    : (pickaxeLevel == 3 ? 2 : (pickaxeLevel == 4 ? 3 : 0));
+            if (eff > 0) {
+                world.getRegistryManager().getOptional(RegistryKeys.ENCHANTMENT)
+                        .orElseThrow()
+                        .getOptional(Enchantments.EFFICIENCY)
+                        .ifPresent(e -> stack.addEnchantment(e, eff));
+            }
+        }
+        return stack.isEmpty() ? null : stack;
     }
 
-    private ItemStack getAxeItem() {
-        return switch (axeLevel) {
+    private ItemStack getAxeItem(ServerWorld world) {
+        ItemStack stack = switch (axeLevel) {
             case 1 -> new ItemStack(Items.WOODEN_AXE);
             case 2 -> new ItemStack(Items.STONE_AXE);
             case 3 -> new ItemStack(Items.IRON_AXE);
             case 4 -> new ItemStack(Items.DIAMOND_AXE);
-            default -> null;
+            default -> ItemStack.EMPTY;
         };
+
+        if (!stack.isEmpty()) {
+            int eff = (axeLevel == 1) ? 1 : (axeLevel == 2 || axeLevel == 3 ? 2 : (axeLevel == 4 ? 3 : 0));
+            if (eff > 0) {
+                world.getRegistryManager().getOptional(RegistryKeys.ENCHANTMENT)
+                        .orElseThrow()
+                        .getOptional(Enchantments.EFFICIENCY)
+                        .ifPresent(e -> stack.addEnchantment(e, eff));
+            }
+        }
+        return stack.isEmpty() ? null : stack;
     }
 
     public void handleDeath(ServerPlayerEntity player, ServerWorld world) {
-        // 1. Drop Currency
         dropCurrency(player, world);
-
-        // 2. Clear Inventory (Remove everything else)
         player.getInventory().clear();
-
-        // 3. Downgrade Tools
         downgradeTools();
     }
 
@@ -212,7 +303,6 @@ public class BedWarsPlayer {
         for (int i = 0; i < player.getInventory().size(); i++) {
             ItemStack stack = player.getInventory().getStack(i);
             if (isCurrency(stack)) {
-                // Drop it
                 ItemEntity itemEntity = new ItemEntity(world, player.getX(), player.getY(), player.getZ(),
                         stack.copy());
                 world.spawnEntity(itemEntity);
@@ -223,16 +313,11 @@ public class BedWarsPlayer {
     private boolean isCurrency(ItemStack stack) {
         if (stack.isEmpty())
             return false;
-        return stack.isOf(Items.IRON_INGOT) ||
-                stack.isOf(Items.GOLD_INGOT) ||
-                stack.isOf(Items.DIAMOND) ||
-                stack.isOf(Items.EMERALD) ||
-                stack.isOf(Items.NETHERITE_INGOT) ||
-                stack.isOf(Items.QUARTZ);
+        return stack.isOf(Items.IRON_INGOT) || stack.isOf(Items.GOLD_INGOT) || stack.isOf(Items.DIAMOND)
+                || stack.isOf(Items.EMERALD) || stack.isOf(Items.NETHERITE_INGOT) || stack.isOf(Items.QUARTZ);
     }
 
     private void downgradeTools() {
-        // 4->3, 3->2, 2->1, 1->1
         if (swordLevel > 1)
             swordLevel--;
         if (pickaxeLevel > 1)
@@ -240,7 +325,7 @@ public class BedWarsPlayer {
         if (axeLevel > 1)
             axeLevel--;
 
-        // Note: We do NOT go to 0 if level was 1. 1 stays 1.
-        // If level was 0 (for Pick/Axe), it stays 0.
+        // Armor vanishes on death
+        armorLevel = 0;
     }
 }

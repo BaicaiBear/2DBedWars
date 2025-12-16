@@ -1,45 +1,3 @@
-/bedwars team blue
-/bedwars team red
-/bedwars team blue
-/bedwars start
-/bedwars stop
-/bedwars team red
-/bedwars start
-/bedwars stop
-/bedwars start
-/bedwars team red
-/bedwars start
-/summon tnt
-/bedwars team red
-/bedwars start
-/summon tnt
-/bedwars team red
-/bedwars start
-/bedwars team red
-/bedwars start
-/bedwars team red
-/bedwars start
-/summon tnt
-/bedwars team red
-/bedwars start
-/summon tnt
-/bedwars stop
-/bedwars team red
-/bedwars start
-/bedwars team r
-/bedwars start
-/bedwars stop
-/bedwars team wq
-/bedwars start
-/bedwars stop
-/bedwars team wq
-/bedwars stop
-/bedwars start
-/bedwars team wq
-/bedwars team 2
-/bedwars start
-/gamemode spectator
-/bedwars team 2
 /bedwars start
 /gamemode spectator
 /bedwars stop
@@ -47,4 +5,46 @@
 /bedwars start
 /bedwars stop
 /bedwars team 2
+/bedwars start
+/bedwars team 2
+/bedwars start
+/bedwars stop
+/bedwars team 2
+/bedwars start
+/bedwars team 2
+/bedwars start
+/give @s minecraft:emerald 64
+/give @s minecraft:diamond 64
+/bedwars stop
+/bedwars team 3
+/bedwars start
+/gamemode creative
+/summon tnt
+/gamemode survival
+/bedwars stop
+/bedwars team 3
+/bedwars start
+/gamemode creative
+/gamemode survival
+/kill
+/give @s minecraft:netherite_ingot 64
+/bedwars stop
+/kill
+/bedwars team 3
+/bedwars start
+/time set day
+/gamemode creative
+/gamemode survival
+/summon pig
+/bedwars stop
+/bedwars team 3
+/bedwars start
+/give @s minecraft:gold_ingot 64
+/gamemode creative
+/bedwars stop
+/kill
+/bedwars team 3
+/bedwars start
+/bedwars reload
+/bedwars team 3
 /bedwars start
