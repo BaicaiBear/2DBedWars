@@ -424,6 +424,7 @@ public class Arena implements IArena {
                             bwPlayer.restoreLobbyState(player);
                             // Reset Gamemode to SURVIVAL
                             player.changeGameMode(GameMode.SURVIVAL);
+                            player.clearStatusEffects();
                         }
                     }
                 }

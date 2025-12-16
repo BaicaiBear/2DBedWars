@@ -1,18 +1,4 @@
 /bedwars start
-/gamemode spectator
-/bedwars stop
-/bedwars team 2
-/bedwars start
-/bedwars stop
-/bedwars team 2
-/bedwars start
-/bedwars team 2
-/bedwars start
-/bedwars stop
-/bedwars team 2
-/bedwars start
-/bedwars team 2
-/bedwars start
 /give @s minecraft:emerald 64
 /give @s minecraft:diamond 64
 /bedwars stop
@@ -48,3 +34,17 @@
 /bedwars reload
 /bedwars team 3
 /bedwars start
+/bedwars team 3
+/bedwars start
+/give @s minecraft:gold_ingot 64
+/bedwars stop
+/bedwars team 3
+/bedwars start
+/give @s minecraft:gold_ingot 64
+/bedwars stop
+/give @s minecraft:gold_ingot 64
+/bedwars team 3
+/bedwars start
+/give @s minecraft:gold_ingot 64
+/bedwars stop
+/kill

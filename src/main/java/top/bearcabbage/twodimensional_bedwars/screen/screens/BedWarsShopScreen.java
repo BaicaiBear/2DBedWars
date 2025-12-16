@@ -284,8 +284,7 @@ public class BedWarsShopScreen extends AbstractACScreen {
                 player.sendMessage(Text.of("§aTeam Upgrade Unlocked: " + entry.name), false);
             }
         }
-
-        player.closeHandledScreen();
+        init(player);
     }
 
     private void buyItem(ServerPlayerEntity player, ItemStack product, ItemStack cost, GameConfig.ShopEntry entry) {
@@ -318,12 +317,14 @@ public class BedWarsShopScreen extends AbstractACScreen {
                         player.getInventory());
                 player.playSound(SoundEvents.ENTITY_EXPERIENCE_ORB_PICKUP, 1.0f, 1.0f);
                 player.sendMessage(Text.of("§aUpgraded/Equipped " + product.getName().getString() + "!"), true);
+                init(player);
             } else {
                 player.getInventory().remove(item -> item.getItem() == cost.getItem(), cost.getCount(),
                         player.getInventory());
                 player.getInventory().offerOrDrop(product.copy());
                 player.playSound(SoundEvents.ENTITY_EXPERIENCE_ORB_PICKUP, 1.0f, 1.0f);
                 player.sendMessage(Text.of("§aPurchased " + product.getName().getString() + "!"), true);
+                init(player);
 
                 if (entry.specialType != null && entry.specialType.equals("SHEARS")) {
                     top.bearcabbage.twodimensional_bedwars.api.IArena arena2 = top.bearcabbage.twodimensional_bedwars.game.ArenaManager
