@@ -2,7 +2,7 @@ package top.bearcabbage.twodimensional_bedwars.command;
 
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
-import com.mojang.brigadier.arguments.StringArgumentType;
+
 import com.mojang.brigadier.context.CommandContext;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
@@ -14,21 +14,16 @@ import top.bearcabbage.twodimensional_bedwars.component.Arena;
 public class BedWarsCommand {
     public static void register(CommandDispatcher<ServerCommandSource> dispatcher) {
         dispatcher.register(CommandManager.literal("bedwars")
-            .requires(source -> source.hasPermissionLevel(2))
-            .then(CommandManager.literal("start")
-                .executes(context -> startGame(context, 2))
-                .then(CommandManager.argument("teams", IntegerArgumentType.integer(2, 4))
-                    .executes(context -> startGame(context, IntegerArgumentType.getInteger(context, "teams")))
-                )
-            )
-            .then(CommandManager.literal("stop")
-                .executes(BedWarsCommand::stopGame))
-            .then(CommandManager.literal("team")
-                .then(CommandManager.argument("color", StringArgumentType.word())
-                    .executes(BedWarsCommand::setTeam)))
-            .then(CommandManager.literal("reload")
-                .executes(BedWarsCommand::reloadConfig))
-        );
+                .then(CommandManager.literal("start")
+                        .executes(context -> startGame(context)))
+                .then(CommandManager.literal("stop")
+                        .executes(BedWarsCommand::stopGame))
+                .then(CommandManager.literal("team")
+                        .then(CommandManager.argument("id", IntegerArgumentType.integer(1, 4))
+                                .executes(BedWarsCommand::setTeam)))
+                .then(CommandManager.literal("reload")
+                        .requires(source -> source.hasPermissionLevel(2))
+                        .executes(BedWarsCommand::reloadConfig)));
     }
 
     private static int reloadConfig(CommandContext<ServerCommandSource> context) {
@@ -38,33 +33,53 @@ public class BedWarsCommand {
     }
 
     private static int setTeam(CommandContext<ServerCommandSource> context) {
-        String teamName = StringArgumentType.getString(context, "color");
+        int id = IntegerArgumentType.getInteger(context, "id");
+        // Map ID to Name
+        String teamName;
+        switch (id) {
+            case 1:
+                teamName = "Red";
+                break; // Team 1
+            case 2:
+                teamName = "Blue";
+                break; // Team 2
+            case 3:
+                teamName = "Green";
+                break; // Team 3
+            case 4:
+                teamName = "Yellow";
+                break; // Team 4
+            default:
+                teamName = "Red";
+        }
+
         IArena arena = ArenaManager.getInstance().getArena();
         if (arena instanceof Arena impl) {
-             try {
+            try {
                 if (impl.setPreferredTeam(context.getSource().getPlayer().getUuid(), teamName)) {
-                     context.getSource().sendMessage(Text.literal("Team preference set to " + teamName));
+                    context.getSource().sendMessage(Text.literal("Selected Team " + id + " (" + teamName + ")"));
                 } else {
-                     context.getSource().sendError(Text.literal("Cannot set team now (Game running?)"));
+                    context.getSource().sendError(Text.literal("Cannot set team now (Game running?)"));
                 }
-             } catch (Exception e) {
-                 // Not a player?
-             }
+            } catch (Exception e) {
+                // Not a player?
+            }
         }
         return 1;
     }
 
-    private static int startGame(CommandContext<ServerCommandSource> context, int teamCount) {
-        boolean success = ArenaManager.getInstance().startGame(context.getSource().getWorld(), teamCount);
+    private static int startGame(CommandContext<ServerCommandSource> context) {
+        // -1 indicates auto-detection of team count based on players
+        boolean success = ArenaManager.getInstance().startGame(context.getSource().getWorld(), -1);
         if (success) {
-            context.getSource().sendMessage(Text.literal("BedWars game started with " + teamCount + " teams!"));
+            context.getSource().sendMessage(Text.literal("BedWars game starting..."));
             return 1;
         } else {
             context.getSource().sendError(Text.literal("Failed to start game! (Already running or not waiting)"));
             return 0;
         }
     }
-    
+
     private static int stopGame(CommandContext<ServerCommandSource> context) {
         boolean success = ArenaManager.getInstance().stopGame();
         if (success) {

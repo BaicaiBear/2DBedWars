@@ -94,9 +94,9 @@
     },
     "arena2Template": {
       "center": {
-        "x": 0,
+        "x": 400,
         "y": 85,
-        "z": 0
+        "z": -33
       },
       "radius": {
         "x": 100,
@@ -135,81 +135,171 @@
     "delaySeconds": 45.0,
     "limit": 2
   },
-  "baseGeneratorRecipes": [
+  "forgeLevels": [
     {
       "level": 0,
-      "resourceType": "minecraft:iron_ingot",
-      "delaySeconds": 1.0,
-      "amount": 1,
-      "limit": 48
+      "resources": [
+        {
+          "material": "minecraft:iron_ingot",
+          "delay": 1.0,
+          "amount": 1,
+          "limit": 48
+        },
+        {
+          "material": "minecraft:gold_ingot",
+          "delay": 4.0,
+          "amount": 1,
+          "limit": 12
+        }
+      ]
     },
     {
       "level": 1,
-      "resourceType": "minecraft:iron_ingot",
-      "delaySeconds": 0.7,
-      "amount": 1,
-      "limit": 48
-    },
-    {
-      "level": 1,
-      "resourceType": "minecraft:gold_ingot",
-      "delaySeconds": 4.0,
-      "amount": 1,
-      "limit": 12
-    },
-    {
-      "level": 2,
-      "resourceType": "minecraft:iron_ingot",
-      "delaySeconds": 0.5,
-      "amount": 1,
-      "limit": 64
+      "resources": [
+        {
+          "material": "minecraft:iron_ingot",
+          "delay": 0.7,
+          "amount": 1,
+          "limit": 64
+        },
+        {
+          "material": "minecraft:gold_ingot",
+          "delay": 2.7,
+          "amount": 1,
+          "limit": 16
+        }
+      ]
     },
     {
       "level": 2,
-      "resourceType": "minecraft:gold_ingot",
-      "delaySeconds": 3.0,
-      "amount": 1,
-      "limit": 16
+      "resources": [
+        {
+          "material": "minecraft:iron_ingot",
+          "delay": 0.5,
+          "amount": 1,
+          "limit": 64
+        },
+        {
+          "material": "minecraft:gold_ingot",
+          "delay": 2.0,
+          "amount": 1,
+          "limit": 24
+        }
+      ]
     },
     {
       "level": 3,
-      "resourceType": "minecraft:emerald",
-      "delaySeconds": 10.0,
-      "amount": 1,
-      "limit": 2
+      "resources": [
+        {
+          "material": "minecraft:iron_ingot",
+          "delay": 0.35,
+          "amount": 1,
+          "limit": 64
+        },
+        {
+          "material": "minecraft:gold_ingot",
+          "delay": 1.3,
+          "amount": 1,
+          "limit": 32
+        },
+        {
+          "material": "minecraft:emerald",
+          "delay": 10.0,
+          "amount": 1,
+          "limit": 4
+        }
+      ]
+    },
+    {
+      "level": 4,
+      "resources": [
+        {
+          "material": "minecraft:iron_ingot",
+          "delay": 0.25,
+          "amount": 1,
+          "limit": 64
+        },
+        {
+          "material": "minecraft:gold_ingot",
+          "delay": 1.0,
+          "amount": 1,
+          "limit": 48
+        },
+        {
+          "material": "minecraft:emerald",
+          "delay": 8.0,
+          "amount": 1,
+          "limit": 6
+        }
+      ]
     }
   ],
   "arena1DiamondGenerators": [
     {
-      "dx": 0,
-      "dy": 0,
-      "dz": 20
+      "dx": 31,
+      "dy": -18,
+      "dz": 29
     },
     {
-      "dx": 0,
-      "dy": 0,
-      "dz": -20
+      "dx": 29,
+      "dy": -18,
+      "dz": -31
+    },
+    {
+      "dx": -31,
+      "dy": -18,
+      "dz": 29
+    },
+    {
+      "dx": -29,
+      "dy": -18,
+      "dz": 31
     }
   ],
   "arena1EmeraldGenerators": [
     {
-      "dx": 0,
-      "dy": 0,
-      "dz": 0
+      "dx": -7,
+      "dy": -14,
+      "dz": -11
+    },
+    {
+      "dx": 8,
+      "dy": -14,
+      "dz": 12
     }
   ],
   "arena2GoldGenerators": [
     {
-      "dx": 10,
-      "dy": 0,
-      "dz": 10
+      "dx": 31,
+      "dy": -18,
+      "dz": 29
+    },
+    {
+      "dx": 29,
+      "dy": -18,
+      "dz": -31
+    },
+    {
+      "dx": -31,
+      "dy": -18,
+      "dz": 29
+    },
+    {
+      "dx": -29,
+      "dy": -18,
+      "dz": 31
     }
   ],
   "arena2NetheriteGenerators": [
     {
-      "dx": -10,
-      "dy": 0,
-      "dz": -10
+      "dx": -7,
+      "dy": -14,
+      "dz": -11
+    },
+    {
+      "dx": 8,
+      "dy": -14,
+      "dz": 12
     }
   ],
   "ironShop": [
@@ -219,7 +309,9 @@
       "count": 16,
       "costId": "minecraft:iron_ingot",
       "price": 4,
-      "name": "White Wool"
+      "name": "White Wool",
+      "type": "ITEM",
+      "upgradeTier": 0
     },
     {
       "slot": 11,
@@ -227,7 +319,9 @@
       "count": 16,
       "costId": "minecraft:gold_ingot",
       "price": 4,
-      "name": "Oak Planks"
+      "name": "Oak Planks",
+      "type": "ITEM",
+      "upgradeTier": 0
     },
     {
       "slot": 13,
@@ -235,23 +329,29 @@
       "count": 1,
       "costId": "minecraft:iron_ingot",
       "price": 10,
-      "name": "Stone Sword"
+      "name": "Stone Sword",
+      "type": "ITEM",
+      "upgradeTier": 0
     },
     {
       "slot": 14,
       "itemId": "minecraft:iron_sword",
       "count": 1,
-      "costId": "minecraft:iron_ingot",
-      "price": 16,
-      "name": "Iron Sword"
+      "costId": "minecraft:gold_ingot",
+      "price": 7,
+      "name": "Iron Sword",
+      "type": "ITEM",
+      "upgradeTier": 0
     },
     {
       "slot": 16,
-      "itemId": "minecraft:stone_pickaxe",
+      "itemId": "minecraft:golden_apple",
       "count": 1,
-      "costId": "minecraft:iron_ingot",
-      "price": 16,
-      "name": "Stone Pickaxe"
+      "costId": "minecraft:gold_ingot",
+      "price": 3,
+      "name": "Golden Apple",
+      "type": "ITEM",
+      "upgradeTier": 0
     }
   ],
   "goldShop": [
@@ -261,7 +361,9 @@
       "count": 64,
       "costId": "minecraft:iron_ingot",
       "price": 8,
-      "name": "Mega Wool"
+      "name": "Mega Wool",
+      "type": "ITEM",
+      "upgradeTier": 0
     },
     {
       "slot": 11,
@@ -269,7 +371,9 @@
       "count": 4,
       "costId": "minecraft:gold_ingot",
       "price": 8,
-      "name": "Obsidian"
+      "name": "Obsidian",
+      "type": "ITEM",
+      "upgradeTier": 0
     },
     {
       "slot": 13,
@@ -277,7 +381,99 @@
       "count": 1,
       "costId": "minecraft:gold_ingot",
       "price": 5,
-      "name": "Diamond Sword"
+      "name": "Diamond Sword",
+      "type": "ITEM",
+      "upgradeTier": 0
+    },
+    {
+      "slot": 19,
+      "itemId": "minecraft:iron_sword",
+      "count": 1,
+      "costId": "minecraft:diamond",
+      "price": 4,
+      "name": "Sharpness I",
+      "type": "UPGRADE_SHARPNESS",
+      "upgradeTier": 1
+    },
+    {
+      "slot": 20,
+      "itemId": "minecraft:iron_chestplate",
+      "count": 1,
+      "costId": "minecraft:diamond",
+      "price": 2,
+      "name": "Protection I",
+      "type": "UPGRADE_PROTECTION",
+      "upgradeTier": 1
+    },
+    {
+      "slot": 20,
+      "itemId": "minecraft:diamond_chestplate",
+      "count": 1,
+      "costId": "minecraft:diamond",
+      "price": 4,
+      "name": "Protection II",
+      "type": "UPGRADE_PROTECTION",
+      "upgradeTier": 2
+    },
+    {
+      "slot": 20,
+      "itemId": "minecraft:netherite_chestplate",
+      "count": 1,
+      "costId": "minecraft:diamond",
+      "price": 8,
+      "name": "Protection III",
+      "type": "UPGRADE_PROTECTION",
+      "upgradeTier": 3
+    },
+    {
+      "slot": 21,
+      "itemId": "minecraft:golden_pickaxe",
+      "count": 1,
+      "costId": "minecraft:diamond",
+      "price": 4,
+      "name": "Haste I",
+      "type": "UPGRADE_HASTE",
+      "upgradeTier": 1
+    },
+    {
+      "slot": 21,
+      "itemId": "minecraft:diamond_pickaxe",
+      "count": 1,
+      "costId": "minecraft:diamond",
+      "price": 6,
+      "name": "Haste II",
+      "type": "UPGRADE_HASTE",
+      "upgradeTier": 2
+    },
+    {
+      "slot": 22,
+      "itemId": "minecraft:furnace",
+      "count": 1,
+      "costId": "minecraft:diamond",
+      "price": 4,
+      "name": "Forge +50%",
+      "type": "UPGRADE_FORGE",
+      "upgradeTier": 1
+    },
+    {
+      "slot": 22,
+      "itemId": "minecraft:blast_furnace",
+      "count": 1,
+      "costId": "minecraft:diamond",
+      "price": 8,
+      "name": "Forge +100%",
+      "type": "UPGRADE_FORGE",
+      "upgradeTier": 2
+    },
+    {
+      "slot": 22,
+      "itemId": "minecraft:emerald_block",
+      "count": 1,
+      "costId": "minecraft:diamond",
+      "price": 12,
+      "name": "Forge Emeralds",
+      "type": "UPGRADE_FORGE",
+      "upgradeTier": 3
     }
   ]
 }

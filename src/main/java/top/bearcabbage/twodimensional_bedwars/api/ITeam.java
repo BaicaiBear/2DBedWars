@@ -21,6 +21,8 @@ public interface ITeam {
 
     void spawnNPCs();
     
+    void tick(net.minecraft.server.world.ServerWorld world);
+    
     String getName();
     
     int getColor(); // Decimal color for text/leather armor

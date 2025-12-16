@@ -15,6 +15,11 @@ import net.minecraft.util.ActionResult;
 import net.minecraft.text.Text;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import net.minecraft.registry.Registry;
+import net.minecraft.registry.Registries;
+import net.minecraft.util.Identifier;
+import top.bearcabbage.twodimensional_bedwars.world.SplitBiomeSource;
+import top.bearcabbage.twodimensional_bedwars.world.ArenaChunkGenerator;
 import top.bearcabbage.twodimensional_bedwars.game.ArenaManager;
 import top.bearcabbage.twodimensional_bedwars.command.BedWarsCommand;
 
@@ -25,10 +30,14 @@ public class TwoDimensionalBedWars implements ModInitializer {
     public static final String MOD_ID = "two-dimensional-bedwars";
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 
-	@Override
-	public void onInitialize() {
-		LOGGER.info("Starting BedWars Engine initialization...");
-		
+    @Override
+    public void onInitialize() {
+        LOGGER.info("Starting BedWars Engine initialization...");
+
+        // Register World Gen
+        Registry.register(Registries.BIOME_SOURCE, Identifier.of(MOD_ID, "split"), SplitBiomeSource.CODEC);
+        Registry.register(Registries.CHUNK_GENERATOR, Identifier.of(MOD_ID, "arena"), ArenaChunkGenerator.CODEC);
+
         // Register Server Starting Event for Map Import
         net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents.SERVER_STARTING.register(server -> {
             try {
@@ -36,15 +45,15 @@ public class TwoDimensionalBedWars implements ModInitializer {
                 var container = net.fabricmc.loader.api.FabricLoader.getInstance().getModContainer(MOD_ID);
                 if (container.isPresent()) {
                     java.nio.file.Path sourcePath = container.get().findPath("map_template").orElse(null);
-                    
+
                     if (sourcePath != null) {
                         java.nio.file.Path levelPath = server.getSavePath(net.minecraft.util.WorldSavePath.ROOT);
                         java.nio.file.Path destPath = levelPath.resolve("dimensions/two-dimensional-bedwars/blueprint");
-                        
+
                         LOGGER.info("Importing Map from Mod Resources ({}) to {}", sourcePath, destPath);
-                        
+
                         if (!java.nio.file.Files.exists(destPath)) {
-                             java.nio.file.Files.createDirectories(destPath);
+                            java.nio.file.Files.createDirectories(destPath);
                         } else {
                             // Clean up potential conflicting files from previous runs
                             try {
@@ -56,27 +65,30 @@ public class TwoDimensionalBedWars implements ModInitializer {
                                 LOGGER.warn("Failed to clean up blueprint directory", e);
                             }
                         }
-                        
+
                         // Recursive Copy (Works for both Directory and JAR FileSystem)
-                        try (java.util.stream.Stream<java.nio.file.Path> stream = java.nio.file.Files.walk(sourcePath)) {
+                        try (java.util.stream.Stream<java.nio.file.Path> stream = java.nio.file.Files
+                                .walk(sourcePath)) {
                             stream.forEach(source -> {
-                                // Only Copy Region Files (and maybe data if needed, but definitely not level.dat)
+                                // Only Copy Region Files (and maybe data if needed, but definitely not
+                                // level.dat)
                                 String relative = sourcePath.relativize(source).toString();
-                                
+
                                 // Simple filter: Only allow 'region/' directory content
                                 if (!relative.startsWith("region")) {
-                                    return; 
+                                    return;
                                 }
 
                                 java.nio.file.Path destination = destPath.resolve(relative);
-                                
+
                                 try {
                                     if (java.nio.file.Files.isDirectory(source)) {
                                         if (!java.nio.file.Files.exists(destination)) {
                                             java.nio.file.Files.createDirectories(destination);
                                         }
                                     } else {
-                                        java.nio.file.Files.copy(source, destination, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+                                        java.nio.file.Files.copy(source, destination,
+                                                java.nio.file.StandardCopyOption.REPLACE_EXISTING);
                                     }
                                 } catch (java.io.IOException e) {
                                     LOGGER.error("Failed to copy file: " + source, e);
@@ -94,9 +106,9 @@ public class TwoDimensionalBedWars implements ModInitializer {
             }
         });
 
-		// Initialize the ArenaManager and register the single arena instance
+        // Initialize the ArenaManager and register the single arena instance
         ArenaManager.getInstance().registerArena(new Arena());
-		
+
         // Register Command
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
             BedWarsCommand.register(dispatcher);
@@ -109,112 +121,131 @@ public class TwoDimensionalBedWars implements ModInitializer {
                 gameArena.tick(server.getOverworld());
             }
         });
-        
+
         // Register Respawn Event
         // Register Fake Death Event (ALLOW_DEATH)
         ServerPlayerEvents.ALLOW_DEATH.register((player, damageSource, damageAmount) -> {
             if (ArenaManager.getInstance().getArena() instanceof Arena gameArena) {
                 // If game is running, handle death manually
                 if (gameArena.getStatus() == GameStatus.PLAYING) {
-                    gameArena.handleDeath(player);
-                    
+                    gameArena.handleDeath(player, damageSource);
+
                     // Reset health effectively "respawning" them as spectator immediately
                     player.setHealth(player.getMaxHealth());
                     player.getHungerManager().setFoodLevel(20);
                     player.getInventory().clear();
-                    
+
                     // Teleport to spectator height (Y=100) above current position
                     // We stay in the same world
-                    player.teleport((ServerWorld) player.getWorld(), player.getX(), 100.0, player.getZ(), EnumSet.noneOf(PositionFlag.class), player.getYaw(), player.getPitch(), false);
-                    
+                    player.teleport((ServerWorld) player.getWorld(), player.getX(), 100.0, player.getZ(),
+                            EnumSet.noneOf(PositionFlag.class), player.getYaw(), player.getPitch(), false);
+
                     // Return false to cancel the actual death process
                     return false;
                 }
             }
             return true; // Allow normal death if not in game
         });
-        
+
         // Register Join Event
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
             if (ArenaManager.getInstance().getArena() instanceof Arena gameArena) {
                 gameArena.addPlayer(handler.player);
             }
         });
-        
+
         // Register Block Break Event
         PlayerBlockBreakEvents.BEFORE.register((world, player, pos, state, blockEntity) -> {
             if (ArenaManager.getInstance().getArena() instanceof Arena gameArena) {
                 if (player instanceof ServerPlayerEntity serverPlayer) {
                     // "Disable block breaking... except for beds and player placed block"
                     if (gameArena.getStatus() == GameStatus.PLAYING) {
-                         // Allow if Bed (handled in handleBlockBreak) OR if block is in placed blocks list
-                         if (gameArena.getData().isBlockPlayerPlaced(pos) || state.getBlock() instanceof net.minecraft.block.BedBlock) {
-                             return gameArena.handleBlockBreak(serverPlayer, pos, state);
-                         } else {
-                             serverPlayer.sendMessage(Text.literal("§cYou cannot break map blocks!"), true);
-                             return false;
-                         }
+                        // Allow if Bed (handled in handleBlockBreak) OR if block is in placed blocks
+                        // list
+                        if (gameArena.getData().isBlockPlayerPlaced(pos)
+                                || state.getBlock() instanceof net.minecraft.block.BedBlock) {
+                            return gameArena.handleBlockBreak(serverPlayer, pos, state);
+                        } else {
+                            serverPlayer.sendMessage(Text.literal("§cYou cannot break map blocks!"), true);
+                            return false;
+                        }
                     }
                 }
             }
             return true;
         });
-        
+
         // Register Use Block (Place & Interact)
         net.fabricmc.fabric.api.event.player.UseBlockCallback.EVENT.register((player, world, hand, hitResult) -> {
-             if (!world.isClient && player instanceof ServerPlayerEntity serverPlayer) {
-                 if (ArenaManager.getInstance().getArena() instanceof Arena gameArena) {
-                     if (gameArena.getStatus() == GameStatus.PLAYING) {
-                         net.minecraft.block.BlockState state = world.getBlockState(hitResult.getBlockPos());
-                         
-                         // Disable Crafting Table Interaction
-                         if (state.getBlock() == net.minecraft.block.Blocks.CRAFTING_TABLE) {
-                             player.sendMessage(Text.literal("§cCrafting is disabled!"), true);
-                             return ActionResult.FAIL;
-                         }
-                         
-                         // Track Placed Blocks
-                         net.minecraft.item.ItemStack stack = player.getStackInHand(hand);
-                         if (stack.getItem() instanceof net.minecraft.item.BlockItem) {
-                             net.minecraft.util.math.BlockPos targetPos = hitResult.getBlockPos().offset(hitResult.getSide());
-                             gameArena.getData().recordPlacedBlock(targetPos);
-                         }
-                     }
-                 }
-             }
-             return ActionResult.PASS;
+            if (!world.isClient && player instanceof ServerPlayerEntity serverPlayer) {
+                if (ArenaManager.getInstance().getArena() instanceof Arena gameArena) {
+                    if (gameArena.getStatus() == GameStatus.PLAYING) {
+                        net.minecraft.block.BlockState state = world.getBlockState(hitResult.getBlockPos());
+
+                        // Disable Crafting Table Interaction
+                        if (state.getBlock() == net.minecraft.block.Blocks.CRAFTING_TABLE) {
+                            player.sendMessage(Text.literal("§cCrafting is disabled!"), true);
+                            return ActionResult.FAIL;
+                        }
+
+                        // Shared Ender Chest
+                        if (state.getBlock() == net.minecraft.block.Blocks.ENDER_CHEST) {
+                            if (gameArena.handleEnderChest(serverPlayer)) {
+                                return ActionResult.SUCCESS;
+                            }
+                        }
+
+                        // Block Bed Interaction (Prevent setting spawn)
+                        if (state.getBlock() instanceof net.minecraft.block.BedBlock) {
+                            if (!serverPlayer.isSneaking()) { // Only block usage (sleeping/setting spawn), allowing
+                                                              // breaking is handled elsewhere
+                                serverPlayer.sendMessage(Text.literal("§cYou cannot sleep or set spawn here!"), true);
+                                return ActionResult.FAIL;
+                            }
+                        }
+
+                        // Track Placed Blocks
+                        net.minecraft.item.ItemStack stack = player.getStackInHand(hand);
+                        if (stack.getItem() instanceof net.minecraft.item.BlockItem) {
+                            net.minecraft.util.math.BlockPos targetPos = hitResult.getBlockPos()
+                                    .offset(hitResult.getSide());
+                            gameArena.getData().recordPlacedBlock(targetPos);
+                        }
+                    }
+                }
+            }
+            return ActionResult.PASS;
         });
-
-
 
         // Register Use Item Event (Shop)
         net.fabricmc.fabric.api.event.player.UseItemCallback.EVENT.register((player, world, hand) -> {
             if (!world.isClient && player instanceof ServerPlayerEntity serverPlayer) {
                 net.minecraft.item.ItemStack stack = player.getStackInHand(hand);
-                if (stack.getItem() == net.minecraft.item.Items.PAPER && 
-                    stack.getName().getString().contains("Shop")) {
-                    
+                if (stack.getItem() == net.minecraft.item.Items.PAPER &&
+                        stack.getName().getString().contains("Shop")) {
+
                     // Access Control: Must be in playing state
                     // TODO: Ideally check if player is actually participating in the game
                     if (ArenaManager.getInstance().getArena() instanceof Arena gameArena) {
-                         if (gameArena.getStatus() != GameStatus.PLAYING) {
-                             return ActionResult.PASS;
-                         }
-                         
-                         // Context-Aware Shop Opening
-                         // Arena 1 (Iron) center roughly 0,0
-                         // Arena 2 (Gold) center roughly 400,0
-                         // Threshold: X > 200 = Gold Shop
-                         
-                         java.util.List<top.bearcabbage.twodimensional_bedwars.config.GameConfig.ShopEntry> shopList;
-                         if (player.getX() > 200) {
-                             shopList = top.bearcabbage.twodimensional_bedwars.config.GameConfig.getInstance().goldShop;
-                         } else {
-                             shopList = top.bearcabbage.twodimensional_bedwars.config.GameConfig.getInstance().ironShop;
-                         }
-                         
-                         serverPlayer.openHandledScreen(new top.bearcabbage.twodimensional_bedwars.screen.screens.BedWarsShopScreen(shopList));
-                         return ActionResult.SUCCESS;
+                        if (gameArena.getStatus() != GameStatus.PLAYING) {
+                            return ActionResult.PASS;
+                        }
+
+                        // Context-Aware Shop Opening
+                        // Arena 1 (Iron) center roughly 0,0
+                        // Arena 2 (Gold) center roughly 400,0
+                        // Threshold: X > 200 = Gold Shop
+
+                        java.util.List<top.bearcabbage.twodimensional_bedwars.config.GameConfig.ShopEntry> shopList;
+                        if (player.getX() > 200) {
+                            shopList = top.bearcabbage.twodimensional_bedwars.config.GameConfig.getInstance().goldShop;
+                        } else {
+                            shopList = top.bearcabbage.twodimensional_bedwars.config.GameConfig.getInstance().ironShop;
+                        }
+
+                        serverPlayer.openHandledScreen(
+                                new top.bearcabbage.twodimensional_bedwars.screen.screens.BedWarsShopScreen(shopList));
+                        return ActionResult.SUCCESS;
                     }
                 }
             }
@@ -225,10 +256,10 @@ public class TwoDimensionalBedWars implements ModInitializer {
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
             ServerPlayerEntity player = handler.getPlayer();
             if (top.bearcabbage.twodimensional_bedwars.data.BedWarsPlayerData.hasBackup(player)) {
-               top.bearcabbage.twodimensional_bedwars.data.BedWarsPlayerData.restoreBackup(player);
-               player.sendMessage(Text.of("§c[BedWars] Backup restored due to unexpected disconnect/restart."), false);
+                top.bearcabbage.twodimensional_bedwars.data.BedWarsPlayerData.restoreBackup(player);
+                player.sendMessage(Text.of("§c[BedWars] Backup restored due to unexpected disconnect/restart."), false);
             }
         });
-		LOGGER.info("BedWars Engine initialized!");
-	}
+        LOGGER.info("BedWars Engine initialized!");
+    }
 }

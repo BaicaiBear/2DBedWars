@@ -20,6 +20,18 @@ public class GamePlayingTask {
         this.arena = arena;
     }
 
+    public int getBedsDestroyCountdown() {
+        return bedsDestroyCountdown;
+    }
+
+    public int getDragonSpawnCountdown() {
+        return dragonSpawnCountdown;
+    }
+
+    public int getGameEndCountdown() {
+        return gameEndCountdown;
+    }
+
     private final Map<UUID, Integer> respawnTimers = new HashMap<>();
     private int tickCounter = 0;
 
@@ -37,7 +49,7 @@ public class GamePlayingTask {
                 }
             }
         }
-        
+
         // Tick Public Generators
         for (OreGenerator generator : arena.getPublicGenerators()) {
             generator.tick(world);
@@ -64,7 +76,7 @@ public class GamePlayingTask {
         bedsDestroyCountdown--;
         dragonSpawnCountdown--;
         gameEndCountdown--;
-        
+
         // Handle Respawn Queue
         Iterator<Map.Entry<UUID, Integer>> iterator = respawnTimers.entrySet().iterator();
         while (iterator.hasNext()) {
@@ -91,30 +103,36 @@ public class GamePlayingTask {
     }
 
     private void checkBedIntegrity(ServerWorld world, BedWarsTeam team, int arenaId) {
-        if (team.isBedDestroyed(arenaId)) return; // Already destroyed
+        if (team.isBedDestroyed(arenaId))
+            return; // Already destroyed
 
         net.minecraft.util.math.BlockPos bedPos = team.getBedLocation(arenaId);
-        if (bedPos == null) return;
+        if (bedPos == null)
+            return;
 
         // Check if block is a Bed
         // Note: BedBlock usually has 2 parts. We stored the 'Foot' pos (spawn).
         // If the block at spawn is NOT a bed, it's gone.
-        // Even if only the head is broken, the foot should technically also break or update?
+        // Even if only the head is broken, the foot should technically also break or
+        // update?
         // In Minecraft, breaking one half breaks the other.
         // So checking the stored pos is sufficient.
-        
-        // We use world.getBlockState(bedPos).getBlock() instanceof net.minecraft.block.BedBlock
+
+        // We use world.getBlockState(bedPos).getBlock() instanceof
+        // net.minecraft.block.BedBlock
         if (!(world.getBlockState(bedPos).getBlock() instanceof net.minecraft.block.BedBlock)) {
             // Bed is gone!
             team.setBedDestroyed(arenaId, true);
-            
+
             // Broadcast
-            world.getServer().getPlayerManager().getPlayerList().forEach(p -> 
-                p.sendMessage(net.minecraft.text.Text.literal("§l§c" + team.getName() + " Bed (Arena " + arenaId + ") was destroyed (Explosion/Check)!"))
-            );
-            
+            world.getServer().getPlayerManager().getPlayerList()
+                    .forEach(p -> p.sendMessage(net.minecraft.text.Text.literal("§l§c" + team.getName() + " Bed (Arena "
+                            + arenaId + ") was destroyed (Explosion/Check)!")));
+
             // Optional: Play Sound
-            // world.playSound(null, bedPos, net.minecraft.sound.SoundEvents.ENTITY_WITHER_SPAWN, net.minecraft.sound.SoundCategory.BLOCKS, 1f, 1f);
+            // world.playSound(null, bedPos,
+            // net.minecraft.sound.SoundEvents.ENTITY_WITHER_SPAWN,
+            // net.minecraft.sound.SoundCategory.BLOCKS, 1f, 1f);
         }
     }
 }

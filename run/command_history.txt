@@ -1,50 +1,50 @@
-/gamemode creative
-/gamemode survival
-/bedwars stop
+/bedwars team blue
+/bedwars team red
+/bedwars team blue
 /bedwars start
 /bedwars stop
-/bedwars start
-/bedwars stop
-/bedwars start
-/bedwars stop
+/bedwars team red
 /bedwars start
 /bedwars stop
 /bedwars start
-/bedwars reload
+/bedwars team red
 /bedwars start
-/gamemode creative
-/bedwars stop
+/summon tnt
+/bedwars team red
 /bedwars start
-/bedwars reload
-/gamemode creative
-/kill
-/gamemode creative
-/bedwars stop
-/gamemode survival
+/summon tnt
+/bedwars team red
 /bedwars start
-/bedwars stop
+/bedwars team red
 /bedwars start
-/bedwars stop
+/bedwars team red
 /bedwars start
-/bedwars stop
-/bedwars start
-/bedwars stop
-/bedwars start
-/bedwars shop
-/bedwars upgrades
+/summon tnt
+/bedwars team red
 /bedwars start
 /summon tnt
 /bedwars stop
+/bedwars team red
 /bedwars start
-/summon tnt
+/bedwars team r
+/bedwars start
+/bedwars stop
+/bedwars team wq
+/bedwars start
+/bedwars stop
+/bedwars team wq
 /bedwars stop
 /bedwars start
-/summon tnt
-/kill
+/bedwars team wq
+/bedwars team 2
 /bedwars start
-/summon tnt
+/gamemode spectator
+/bedwars team 2
+/bedwars start
+/gamemode spectator
 /bedwars stop
+/bedwars team 2
 /bedwars start
-/summon tnt
+/bedwars stop
+/bedwars team 2
 /bedwars start
-/bedwars reload

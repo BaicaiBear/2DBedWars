@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import net.minecraft.entity.effect.StatusEffectInstance;
+import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.util.math.BlockPos;
 import top.bearcabbage.twodimensional_bedwars.api.ITeam;
 
@@ -21,8 +22,19 @@ public class BedWarsTeam implements ITeam {
     private final List<BedWarsPlayer> players; // NEW
     private final List<BlockPos> generators;
     private final List<OreGenerator> liveGenerators; // Active tickable generators
+    private final List<net.minecraft.entity.effect.StatusEffectInstance> teamEffects;
     
-    private final List<StatusEffectInstance> teamEffects;
+    // Upgrades
+    private int sharpnessLevel = 0;
+    private int protectionLevel = 0;
+    private int hasteLevel = 0;
+    private int forgeLevel = 0;
+    
+    // Shared Inventory
+    private final net.minecraft.inventory.SimpleInventory enderChest;
+    
+    // Tick Counter
+    private int tickTimer = 0;
 
     public BedWarsTeam(String name, int color) {
         this.name = name;
@@ -36,6 +48,137 @@ public class BedWarsTeam implements ITeam {
         this.generators = new ArrayList<>();
         this.liveGenerators = new ArrayList<>();
         this.teamEffects = new ArrayList<>();
+        
+        this.enderChest = new net.minecraft.inventory.SimpleInventory(27);
+    }
+    
+    public net.minecraft.inventory.SimpleInventory getEnderChest() {
+        return enderChest;
+    }
+    
+    public void tick(net.minecraft.server.world.ServerWorld world) {
+        tickTimer++;
+        
+        // Tick Generators
+        for (OreGenerator gen : liveGenerators) {
+            gen.tick(world);
+        }
+        
+        // Every 10 ticks: Apply Upgrades
+        if (tickTimer % 10 == 0) {
+            applyTeamUpgrades(world);
+        }
+    }
+    
+    private void applyTeamUpgrades(net.minecraft.server.world.ServerWorld world) {
+        net.minecraft.registry.Registry<net.minecraft.enchantment.Enchantment> registry = world.getRegistryManager().getOptional(net.minecraft.registry.RegistryKeys.ENCHANTMENT).orElseThrow();
+        net.minecraft.registry.entry.RegistryEntry<net.minecraft.enchantment.Enchantment> sharpness = registry.getEntry(net.minecraft.enchantment.Enchantments.SHARPNESS.getValue()).orElseThrow();
+        net.minecraft.registry.entry.RegistryEntry<net.minecraft.enchantment.Enchantment> protection = registry.getEntry(net.minecraft.enchantment.Enchantments.PROTECTION.getValue()).orElseThrow();
+
+        for (BedWarsPlayer bwPlayer : players) {
+            net.minecraft.server.network.ServerPlayerEntity player = world.getServer().getPlayerManager().getPlayer(bwPlayer.getUuid());
+            if (player != null && bwPlayer.getState() == 1) { // Alive
+                
+                // 1. Haste Effect
+                if (hasteLevel > 0) {
+                    // Haste I = amplifier 0, Haste II = amplifier 1
+                    int amp = hasteLevel - 1;
+                    // Apply for 12 seconds (240 ticks) to ensure continuity
+                    player.addStatusEffect(new StatusEffectInstance(net.minecraft.entity.effect.StatusEffects.HASTE, 240, amp, true, false, true));
+                }
+                
+                // 2. Sharpness on Swords
+                if (sharpnessLevel > 0) {
+                     for (int i=0; i<player.getInventory().size(); i++) {
+                         net.minecraft.item.ItemStack stack = player.getInventory().getStack(i);
+                         if (!stack.isEmpty() && isSword(stack)) {
+                             applyEnchantment(stack, sharpness, sharpnessLevel);
+                         }
+                     }
+                }
+                
+                // 3. Protection on Armor
+                if (protectionLevel > 0) {
+                     for (int i=0; i<4; i++) {
+                         net.minecraft.item.ItemStack stack = player.getInventory().getStack(36 + i); // 36-39 are armor slots
+                         if (!stack.isEmpty()) {
+                              applyEnchantment(stack, protection, protectionLevel);
+                         }
+                     }
+                }
+            }
+        }
+    }
+    
+    // Helper to apply enchant safely (only if lower)
+    private void applyEnchantment(net.minecraft.item.ItemStack stack, net.minecraft.registry.entry.RegistryEntry<net.minecraft.enchantment.Enchantment> enchant, int level) {
+         net.minecraft.component.type.ItemEnchantmentsComponent enchants = net.minecraft.enchantment.EnchantmentHelper.getEnchantments(stack);
+         int current = enchants.getLevel(enchant);
+         if (current < level) {
+             net.minecraft.component.type.ItemEnchantmentsComponent.Builder builder = new net.minecraft.component.type.ItemEnchantmentsComponent.Builder(enchants);
+             builder.set(enchant, level);
+             net.minecraft.enchantment.EnchantmentHelper.set(stack, builder.build());
+         }
+    }
+    
+    private boolean isSword(net.minecraft.item.ItemStack stack) {
+        net.minecraft.item.Item item = stack.getItem();
+        return item == net.minecraft.item.Items.WOODEN_SWORD || 
+               item == net.minecraft.item.Items.STONE_SWORD || 
+               item == net.minecraft.item.Items.IRON_SWORD || 
+               item == net.minecraft.item.Items.GOLDEN_SWORD || 
+               item == net.minecraft.item.Items.DIAMOND_SWORD || 
+               item == net.minecraft.item.Items.NETHERITE_SWORD;
+    }
+    
+    // Upgrade Setters
+    public void setSharpnessLevel(int level) { this.sharpnessLevel = level; }
+    public int getSharpnessLevel() { return sharpnessLevel; }
+    
+    public void setProtectionLevel(int level) { this.protectionLevel = level; }
+    public int getProtectionLevel() { return protectionLevel; }
+    
+    public void setHasteLevel(int level) { this.hasteLevel = level; }
+    public int getHasteLevel() { return hasteLevel; }
+    
+    public void setForgeLevel(int level) { 
+        this.forgeLevel = level; 
+        updateGenerators();
+    }
+    public int getForgeLevel() { return forgeLevel; }
+    
+    private void updateGenerators() {
+        liveGenerators.clear();
+        top.bearcabbage.twodimensional_bedwars.config.GameConfig config = top.bearcabbage.twodimensional_bedwars.config.GameConfig.getInstance();
+        
+        // Find recipes for current forge level
+        List<top.bearcabbage.twodimensional_bedwars.config.GameConfig.ForgeResource> resources = new ArrayList<>();
+        if (config.forgeLevels != null) {
+            for (top.bearcabbage.twodimensional_bedwars.config.GameConfig.ForgeLevel fl : config.forgeLevels) {
+                if (fl.level == this.forgeLevel) {
+                    resources = fl.resources;
+                    break;
+                }
+            }
+        }
+        
+        // Use default if nothing found (e.g. Level 0 fallback)
+        if (resources.isEmpty() && this.forgeLevel == 0) {
+            // Hardcoded fallback? Or just empty.
+        }
+
+        for (BlockPos pos : generators) {
+            for (top.bearcabbage.twodimensional_bedwars.config.GameConfig.ForgeResource res : resources) {
+                 // 1.21 Identifier fix
+                 net.minecraft.util.Identifier id = net.minecraft.util.Identifier.tryParse(res.material);
+                 if (id == null) id = net.minecraft.util.Identifier.of("minecraft", "air");
+                 
+                 net.minecraft.item.Item item = net.minecraft.registry.Registries.ITEM.get(id);
+                 if (item != net.minecraft.item.Items.AIR) {
+                     liveGenerators.add(new OreGenerator(pos, item, res.amount, res.delay, res.limit));
+                 }
+            }
+        }
     }
     
     public void setSpawnPoint(int arenaId, BlockPos pos) {
@@ -168,13 +311,6 @@ public class BedWarsTeam implements ITeam {
         BedWarsTeam team = new BedWarsTeam(name, colorValue);
         top.bearcabbage.twodimensional_bedwars.config.GameConfig config = top.bearcabbage.twodimensional_bedwars.config.GameConfig.getInstance();
         
-        // Helper to get settings based on resource name
-        top.bearcabbage.twodimensional_bedwars.config.GameConfig.GeneratorSetting setting1 = getSettingForResource(config, res1);
-        top.bearcabbage.twodimensional_bedwars.config.GameConfig.GeneratorSetting setting2 = getSettingForResource(config, res2);
-        
-        net.minecraft.item.Item item1 = getItemForResource(res1);
-        net.minecraft.item.Item item2 = getItemForResource(res2);
-
         // --- Arena 1 Setup ---
         // Spawn: Center + Spawn Offset
         top.bearcabbage.twodimensional_bedwars.config.GameConfig.Offset sOff = teamConfig.spawn;
@@ -186,7 +322,7 @@ public class BedWarsTeam implements ITeam {
         top.bearcabbage.twodimensional_bedwars.config.GameConfig.Offset gOff = teamConfig.generator;
         BlockPos gen1 = new BlockPos(c1.x + gOff.dx, c1.y + gOff.dy, c1.z + gOff.dz);
         team.addGenerator(gen1);
-        team.addLiveGenerator(new OreGenerator(gen1, item1, setting1.amount, setting1.delaySeconds, setting1.limit));
+        // Live generators managed by Forge Level
         
         // Base Blocks (Bed, No Platform)
         net.minecraft.block.Block bedBlock = getBedBlock(name);
@@ -200,24 +336,17 @@ public class BedWarsTeam implements ITeam {
         
         BlockPos gen2 = new BlockPos(c2.x + gOff.dx, c2.y + gOff.dy, c2.z + gOff.dz);
         team.addGenerator(gen2);
-        team.addLiveGenerator(new OreGenerator(gen2, item2, setting2.amount, setting2.delaySeconds, setting2.limit));
+        // Live generators managed by Forge Level
         
         setupTeamBase(world, team, bedBlock, facing, spawn2);
+        
+        // Initialize Generators
+        team.setForgeLevel(0);
         
         return team;
     }
     
-    private static top.bearcabbage.twodimensional_bedwars.config.GameConfig.GeneratorSetting getSettingForResource(top.bearcabbage.twodimensional_bedwars.config.GameConfig config, String type) {
-        if ("Gold".equalsIgnoreCase(type)) return config.goldGenerator;
-        if ("Quartz".equalsIgnoreCase(type)) return config.quartzGenerator;
-        return config.ironGenerator;
-    }
-    
-    private static net.minecraft.item.Item getItemForResource(String type) {
-        if ("Gold".equalsIgnoreCase(type)) return net.minecraft.item.Items.GOLD_INGOT;
-        if ("Quartz".equalsIgnoreCase(type)) return net.minecraft.item.Items.QUARTZ;
-        return net.minecraft.item.Items.IRON_INGOT;
-    }
+    // Removed unused helpers: getSettingForResource, getItemForResource
     
     private static net.minecraft.block.Block getBedBlock(String name) {
         if ("Red".equalsIgnoreCase(name)) return net.minecraft.block.Blocks.RED_BED;
