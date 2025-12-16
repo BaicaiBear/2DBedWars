@@ -37,6 +37,11 @@ public class GamePlayingTask {
                 }
             }
         }
+        
+        // Tick Public Generators
+        for (OreGenerator generator : arena.getPublicGenerators()) {
+            generator.tick(world);
+        }
 
         // Bed Integrity Check (Every 10 Ticks)
         if (tickCounter % 10 == 0) {

@@ -11,6 +11,8 @@ import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.enums.BedPart;
+import net.minecraft.entity.ItemEntity;
+import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.nbt.NbtList;
 import net.minecraft.registry.RegistryKey;
@@ -35,9 +37,10 @@ public class Arena implements IArena {
     private GameStatus status;
     private final List<ITeam> teams;
     private final Map<UUID, ITeam> playerTeamMap;
-    // 0 = Spectator, 1 = Alive
-    private final Map<UUID, Integer> playerStateMap;
-    private final Map<UUID, NbtList> savedInventories;
+    // 0 = Spectator, 1 = Alive (State is now in BedWarsPlayer)
+    // Players waiting to join (before game starts)
+    private final java.util.Set<UUID> waitingPlayers; 
+    
     private final Map<UUID, String> preferredTeams;
     private final GameConfig config;
     private final Map<UUID, Integer> respawnTargets;
@@ -53,13 +56,16 @@ public class Arena implements IArena {
         this.status = GameStatus.WAITING;
         this.teams = new ArrayList<>();
         this.playerTeamMap = new HashMap<>();
-        this.playerStateMap = new HashMap<>();
-        this.savedInventories = new HashMap<>();
+        this.waitingPlayers = new java.util.HashSet<>();
         this.preferredTeams = new HashMap<>();
         this.config = GameConfig.getInstance();
         this.respawnTargets = new HashMap<>();
         this.placedBlocks = new java.util.HashSet<>();
+        this.publicGenerators = new ArrayList<>();
     }
+    
+    // Generators not belonging to any team
+    private final List<OreGenerator> publicGenerators;
     
     private final java.util.Set<BlockPos> placedBlocks;
     
@@ -105,20 +111,24 @@ public class Arena implements IArena {
     public List<ITeam> getTeams() {
         return teams;
     }
+    
+    public List<OreGenerator> getPublicGenerators() {
+        return publicGenerators;
+    }
 
     @Override
     public boolean addPlayer(ServerPlayerEntity player) {
         if (status != GameStatus.WAITING && status != GameStatus.STARTING) {
             return false;
         }
-        playerStateMap.put(player.getUuid(), 0);
+        waitingPlayers.add(player.getUuid());
         return true;
     }
 
     @Override
     public void removePlayer(ServerPlayerEntity player) {
         playerTeamMap.remove(player.getUuid());
-        playerStateMap.remove(player.getUuid());
+        waitingPlayers.remove(player.getUuid());
         preferredTeams.remove(player.getUuid());
     }
 
@@ -209,7 +219,7 @@ public class Arena implements IArena {
         
         // Assign potential players (so they see the title? No, addPlayer handles that)
         for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
-             if (!playerStateMap.containsKey(player.getUuid())) {
+             if (!waitingPlayers.contains(player.getUuid())) {
                 addPlayer(player);
             }
         }
@@ -234,9 +244,14 @@ public class Arena implements IArena {
                  ITeam team = entry.getValue();
                  ServerPlayerEntity player = world.getServer().getPlayerManager().getPlayer(uuid);
                  if (player != null && team instanceof BedWarsTeam bwTeam) {
+                     // Create BedWarsPlayer
+                     BedWarsPlayer bwPlayer = new BedWarsPlayer(uuid, team);
+                     bwPlayer.setState(1); // Alive
+                     team.addPlayer(bwPlayer); // Add to Team storage
+
                      // Save Backup
-                     top.bearcabbage.twodimensional_bedwars.data.BedWarsPlayerData.saveBackup(player);
-                 
+                     bwPlayer.saveLobbyState(player);
+                     
                      player.getInventory().clear();
                      
                      BlockPos spawn = bwTeam.getSpawnPoint(1); // Start in Arena 1
@@ -244,13 +259,17 @@ public class Arena implements IArena {
                      player.changeGameMode(GameMode.SURVIVAL);
                      player.setHealth(player.getMaxHealth());
                      player.getHungerManager().setFoodLevel(20);
+                     
+                     // Apply Tools & Give Shop Item
+                     bwPlayer.applyTools(player);
                      giveShopItem(player);
                  }
              }
              
-             for (UUID uuid : playerTeamMap.keySet()) {
-                 playerStateMap.put(uuid, 1); // Alive
-             }
+             // Clear waiting players as they are now ingame (or keep them?)
+             // waitingPlayers.clear(); // Keep them to know who joined initially? 
+             // Logic doesn't use them during game.
+             waitingPlayers.clear();
     }
     
     private void triggerMapRestore(ServerWorld dest, Runnable callback) {
@@ -275,20 +294,30 @@ public class Arena implements IArena {
         // Restore Players
         if (this.gameWorld != null) {
             MinecraftServer server = this.gameWorld.getServer();
-            // Restore every player who has a backup
-             for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
-                  top.bearcabbage.twodimensional_bedwars.data.BedWarsPlayerData.restoreBackup(player);
-                  // Reset Gamemode to SURVIVAL
-                  player.changeGameMode(GameMode.SURVIVAL);
-             }
+            // Restore players via Teams
+            for (ITeam team : teams) {
+                if (team instanceof BedWarsTeam bwTeam) {
+                    for (BedWarsPlayer bwPlayer : bwTeam.getPlayers()) {
+                         ServerPlayerEntity player = server.getPlayerManager().getPlayer(bwPlayer.getUuid());
+                         if (player != null) {
+                             bwPlayer.restoreLobbyState(player);
+                             // Reset Gamemode to SURVIVAL
+                             player.changeGameMode(GameMode.SURVIVAL);
+                         }
+                    }
+                }
+            }
+            
+            // Fallback: Check for any players with backups who might not be in a team?
+            // (e.g. if they weren't assigned properly or something)
+            // But for OOC refactoring, we rely on Team structure.
         }
         
         gamePlayingTask = null;
         
         teams.clear();
         playerTeamMap.clear();
-        playerStateMap.clear();
-        savedInventories.clear();
+        waitingPlayers.clear();
         placedBlocks.clear();
         
         // No triggerMapRestore here, as we do it on start.
@@ -317,12 +346,13 @@ public class Arena implements IArena {
         String res2 = config.arena2.resourceType;
 
         // Create Teams and Bases
-        createTeam(world, 1, "Red", Formatting.RED, c1, c2, offsets.team1, res1, res2);
-        createTeam(world, 2, "Blue", Formatting.BLUE, c1, c2, offsets.team2, res1, res2);
+        // Create Teams and Bases
+        teams.add(BedWarsTeam.createTeam(world, 1, "Red", Formatting.RED.getColorValue(), c1, c2, offsets.team1, res1, res2));
+        teams.add(BedWarsTeam.createTeam(world, 2, "Blue", Formatting.BLUE.getColorValue(), c1, c2, offsets.team2, res1, res2));
         
         if (teamCount >= 4) {
-            createTeam(world, 3, "Green", Formatting.GREEN, c1, c2, offsets.team3, res1, res2);
-            createTeam(world, 4, "Yellow", Formatting.YELLOW, c1, c2, offsets.team4, res1, res2);
+             teams.add(BedWarsTeam.createTeam(world, 3, "Green", Formatting.GREEN.getColorValue(), c1, c2, offsets.team3, res1, res2));
+             teams.add(BedWarsTeam.createTeam(world, 4, "Yellow", Formatting.YELLOW.getColorValue(), c1, c2, offsets.team4, res1, res2));
         }
         
         // Spawn Public Generators
@@ -343,7 +373,7 @@ public class Arena implements IArena {
         // The original code has 'Assign Players' right after team creation.
         
         // Pass 1: Preferences
-        for (UUID uuid : playerStateMap.keySet()) {
+        for (UUID uuid : waitingPlayers) {
             String updatedPref = preferredTeams.get(uuid);
             boolean assigned = false;
             if (updatedPref != null) {
@@ -372,106 +402,13 @@ public class Arena implements IArena {
     }
     
     private void spawnPublicGenerators(ServerWorld world, GameConfig.MapPoint center, List<GameConfig.Offset> offsets, GameConfig.GeneratorSetting setting, net.minecraft.item.Item item) {
-        // We need to attach these to *something* so they tick. 
-        // Currently only Teams track generators. 
-        // HACK: Attach public generators to the FIRST team (Red) for ticking purposes?
-        // Or create a dummy team / manage a separate list in Arena.
-        // Given existing structure, let's attach to the first team for now so they get ticked by the GamePlayingTask calling team.tick().
-        if (!teams.isEmpty() && teams.get(0) instanceof BedWarsTeam redTeam) {
-            for (GameConfig.Offset off : offsets) {
-                 BlockPos pos = new BlockPos(center.x + off.dx, center.y + off.dy, center.z + off.dz);
-                 redTeam.addLiveGenerator(new OreGenerator(pos, item, setting.amount, setting.delaySeconds, setting.limit));
-            }
+        for (GameConfig.Offset off : offsets) {
+             BlockPos pos = new BlockPos(center.x + off.dx, center.y + off.dy, center.z + off.dz);
+             publicGenerators.add(new OreGenerator(pos, item, setting.amount, setting.delaySeconds, setting.limit));
         }
     }
 
-    private void createTeam(ServerWorld world, int id, String name, Formatting color, 
-                            GameConfig.MapPoint c1, GameConfig.MapPoint c2, GameConfig.TeamConfig teamConfig,
-                            String res1, String res2) {
-        BedWarsTeam team = new BedWarsTeam(name, color.getColorValue());
-        teams.add(team);
-        
-        GameConfig config = GameConfig.getInstance();
-        
-        // Helper to get settings based on resource name
-        GameConfig.GeneratorSetting setting1 = getSettingForResource(res1);
-        GameConfig.GeneratorSetting setting2 = getSettingForResource(res2);
-        
-        net.minecraft.item.Item item1 = getItemForResource(res1);
-        net.minecraft.item.Item item2 = getItemForResource(res2);
-
-        // --- Arena 1 Setup ---
-        // Spawn: Center + Spawn Offset
-        GameConfig.Offset sOff = teamConfig.spawn;
-        BlockPos spawn1 = new BlockPos(c1.x + sOff.dx, c1.y + sOff.dy, c1.z + sOff.dz);
-        team.setSpawnPoint(1, spawn1);
-        team.setBedLocation(1, spawn1); // Bed placed at spawn
-        
-        // Generator: Center + Generator Offset
-        GameConfig.Offset gOff = teamConfig.generator;
-        BlockPos gen1 = new BlockPos(c1.x + gOff.dx, c1.y + gOff.dy, c1.z + gOff.dz);
-        team.addGenerator(gen1);
-        team.addLiveGenerator(new OreGenerator(gen1, item1, setting1.amount, setting1.delaySeconds, setting1.limit));
-        
-        // Base Blocks (Bed, No Platform)
-        net.minecraft.block.Block bedBlock = getBedBlock(name);
-        Direction facing = getFacingTowardsCenter(sOff.dx, sOff.dz);
-        setupTeamBase(world, team, bedBlock, facing, spawn1);
-
-        // --- Arena 2 Setup ---
-        BlockPos spawn2 = new BlockPos(c2.x + sOff.dx, c2.y + sOff.dy, c2.z + sOff.dz);
-        team.setSpawnPoint(2, spawn2);
-        team.setBedLocation(2, spawn2);
-        
-        BlockPos gen2 = new BlockPos(c2.x + gOff.dx, c2.y + gOff.dy, c2.z + gOff.dz);
-        team.addGenerator(gen2);
-        team.addLiveGenerator(new OreGenerator(gen2, item2, setting2.amount, setting2.delaySeconds, setting2.limit));
-        
-        setupTeamBase(world, team, bedBlock, facing, spawn2);
-        
-        addTeam(team);
-    }
-    
-    private GameConfig.GeneratorSetting getSettingForResource(String type) {
-        if ("Gold".equalsIgnoreCase(type)) return config.goldGenerator;
-        if ("Quartz".equalsIgnoreCase(type)) return config.quartzGenerator;
-        return config.ironGenerator;
-    }
-    
-    private net.minecraft.item.Item getItemForResource(String type) {
-        if ("Gold".equalsIgnoreCase(type)) return Items.GOLD_INGOT;
-        if ("Quartz".equalsIgnoreCase(type)) return Items.QUARTZ;
-        return Items.IRON_INGOT;
-    }
-    
-    private Block getBedBlock(String name) {
-        return switch (name) {
-            case "Red" -> Blocks.RED_BED;
-            case "Blue" -> Blocks.BLUE_BED;
-            case "Green" -> Blocks.GREEN_BED;
-            case "Yellow" -> Blocks.YELLOW_BED;
-            default -> Blocks.WHITE_BED;
-        };
-    }
-    
-    private Direction getFacingTowardsCenter(int dx, int dz) {
-        if (Math.abs(dx) > Math.abs(dz)) {
-            return dx > 0 ? Direction.WEST : Direction.EAST;
-        } else {
-            return dz > 0 ? Direction.NORTH : Direction.SOUTH;
-        }
-    }
-    
-    private void setupTeamBase(ServerWorld world, BedWarsTeam team, Block bedBlock, Direction facing, BlockPos spawnPos) {
-        // Bed Foot at Spawn, Head towards center (Facing)
-        BlockPos footPos = spawnPos;
-        BlockPos headPos = spawnPos.offset(facing); 
-        
-        world.setBlockState(headPos, bedBlock.getDefaultState().with(BedBlock.PART, BedPart.HEAD).with(BedBlock.FACING, facing));
-        world.setBlockState(footPos, bedBlock.getDefaultState().with(BedBlock.PART, BedPart.FOOT).with(BedBlock.FACING, facing));
-        
-        // Removed Auto-Generated Platform
-    }
+    // Old createTeam and helper methods removed - moved to BedWarsTeam factory.
     
     public boolean handleBlockBreak(ServerPlayerEntity player, BlockPos pos, BlockState state) {
         if (status != GameStatus.PLAYING) return true;
@@ -540,11 +477,17 @@ public class Arena implements IArena {
         int targetArena = (currentArena == 1) ? 2 : 1;
         
         if (team instanceof BedWarsTeam bwTeam) {
+             BedWarsPlayer bwPlayer = team.getPlayer(player.getUuid());
+             if (bwPlayer != null) {
+                 bwPlayer.handleDeath(player, this.gameWorld);
+             }
+
              if (bwTeam.isBedDestroyed(targetArena)) {
                  // Elimination
-                 player.changeGameMode(GameMode.SPECTATOR);
                  player.sendMessage(Text.literal("You have been eliminated! (Target Bed Destroyed)"));
-                 playerStateMap.put(player.getUuid(), 0); 
+                 player.changeGameMode(GameMode.SPECTATOR);
+                 if (bwPlayer != null) bwPlayer.setState(0); // Spectator 
+                 // playerStateMap.put(player.getUuid(), 0); // Removed
              } else {
                  // Respawn
                  player.changeGameMode(GameMode.SPECTATOR);
@@ -573,6 +516,11 @@ public class Arena implements IArena {
                     player.teleport(targetWorld, spawn.getX() + 0.5, spawn.getY(), spawn.getZ() + 0.5, java.util.EnumSet.noneOf(net.minecraft.network.packet.s2c.play.PositionFlag.class), 0, 0, false);
                     player.changeGameMode(GameMode.SURVIVAL);
                     player.setHealth(player.getMaxHealth());
+                    
+                    BedWarsPlayer bwPlayer = team.getPlayer(uuid);
+                    if (bwPlayer != null) {
+                        bwPlayer.applyTools(player);
+                    }
                     giveShopItem(player);
                     respawnTargets.remove(uuid);
                  }

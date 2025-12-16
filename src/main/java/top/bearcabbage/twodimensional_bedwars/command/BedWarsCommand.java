@@ -55,40 +55,24 @@ public class BedWarsCommand {
     }
 
     private static int startGame(CommandContext<ServerCommandSource> context, int teamCount) {
-        IArena arena = ArenaManager.getInstance().getArena();
-        if (arena == null) {
-            context.getSource().sendError(Text.literal("Arena not initialized!"));
-            return 0;
-        }
-
-        if (arena.getStatus() != IArena.GameStatus.WAITING) {
-            context.getSource().sendError(Text.literal("Game is already running or not in waiting state!"));
-            return 0;
-        }
-
-        if (arena instanceof Arena) {
-            ((Arena) arena).startGame(context.getSource().getWorld(), teamCount);
+        boolean success = ArenaManager.getInstance().startGame(context.getSource().getWorld(), teamCount);
+        if (success) {
             context.getSource().sendMessage(Text.literal("BedWars game started with " + teamCount + " teams!"));
+            return 1;
         } else {
-             context.getSource().sendError(Text.literal("Unknown Arena implementation!"));
-             return 0;
+            context.getSource().sendError(Text.literal("Failed to start game! (Already running or not waiting)"));
+            return 0;
         }
-
-        return 1;
     }
-
+    
     private static int stopGame(CommandContext<ServerCommandSource> context) {
-        IArena arena = ArenaManager.getInstance().getArena();
-        if (arena == null) {
-             context.getSource().sendError(Text.literal("Arena not initialized!"));
-             return 0;
-        }
-        
-        if (arena instanceof Arena) {
-            ((Arena) arena).stopGame();
+        boolean success = ArenaManager.getInstance().stopGame();
+        if (success) {
             context.getSource().sendMessage(Text.literal("BedWars game stopped!"));
+            return 1;
+        } else {
+            context.getSource().sendError(Text.literal("Failed to stop game! (No arena?)"));
+            return 0;
         }
-        
-        return 1;
     }
 }

@@ -22,4 +22,7 @@ public interface IArena {
     
     ITeam getTeam(ServerPlayerEntity player);
     void spawnNPCs();
+    
+    void startGame(net.minecraft.server.world.ServerWorld world, int teamCount);
+    void stopGame();
 }

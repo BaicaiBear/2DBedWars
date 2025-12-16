@@ -1,7 +1,3 @@
-/gamemode c
-/gamemode creative
-/bedwars stop
-/bedwars start
 /gamemode creative
 /gamemode survival
 /bedwars stop
@@ -48,3 +44,7 @@
 /bedwars start
 /summon tnt
 /bedwars stop
+/bedwars start
+/summon tnt
+/bedwars start
+/bedwars reload

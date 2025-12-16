@@ -18,6 +18,7 @@ public class BedWarsTeam implements ITeam {
     private final Map<Integer, Boolean> bedStates;    // Key: Arena ID, Value: isDestroyed
     
     private final List<UUID> members;
+    private final List<BedWarsPlayer> players; // NEW
     private final List<BlockPos> generators;
     private final List<OreGenerator> liveGenerators; // Active tickable generators
     
@@ -31,6 +32,7 @@ public class BedWarsTeam implements ITeam {
         this.bedLocations = new HashMap<>();
         
         this.members = new ArrayList<>();
+        this.players = new ArrayList<>(); // NEW
         this.generators = new ArrayList<>();
         this.liveGenerators = new ArrayList<>();
         this.teamEffects = new ArrayList<>();
@@ -131,5 +133,114 @@ public class BedWarsTeam implements ITeam {
     @Override
     public BlockPos getBedLocation(int arenaId) {
         return bedLocations.get(arenaId);
+    }
+
+    @Override
+    public void addPlayer(BedWarsPlayer player) {
+        players.add(player);
+        if (!members.contains(player.getUuid())) {
+            members.add(player.getUuid());
+        }
+    }
+
+    @Override
+    public List<BedWarsPlayer> getPlayers() {
+        return players;
+    }
+    
+    @Override
+    public BedWarsPlayer getPlayer(UUID uuid) {
+        for (BedWarsPlayer p : players) {
+            if (p.getUuid().equals(uuid)) {
+                return p;
+            }
+        }
+        return null;
+    }
+    // --- Factory / Setup Logic ---
+
+    public static BedWarsTeam createTeam(net.minecraft.server.world.ServerWorld world, int id, String name, int colorValue, 
+                                         top.bearcabbage.twodimensional_bedwars.config.GameConfig.MapPoint c1, 
+                                         top.bearcabbage.twodimensional_bedwars.config.GameConfig.MapPoint c2, 
+                                         top.bearcabbage.twodimensional_bedwars.config.GameConfig.TeamConfig teamConfig,
+                                         String res1, String res2) {
+        
+        BedWarsTeam team = new BedWarsTeam(name, colorValue);
+        top.bearcabbage.twodimensional_bedwars.config.GameConfig config = top.bearcabbage.twodimensional_bedwars.config.GameConfig.getInstance();
+        
+        // Helper to get settings based on resource name
+        top.bearcabbage.twodimensional_bedwars.config.GameConfig.GeneratorSetting setting1 = getSettingForResource(config, res1);
+        top.bearcabbage.twodimensional_bedwars.config.GameConfig.GeneratorSetting setting2 = getSettingForResource(config, res2);
+        
+        net.minecraft.item.Item item1 = getItemForResource(res1);
+        net.minecraft.item.Item item2 = getItemForResource(res2);
+
+        // --- Arena 1 Setup ---
+        // Spawn: Center + Spawn Offset
+        top.bearcabbage.twodimensional_bedwars.config.GameConfig.Offset sOff = teamConfig.spawn;
+        BlockPos spawn1 = new BlockPos(c1.x + sOff.dx, c1.y + sOff.dy, c1.z + sOff.dz);
+        team.setSpawnPoint(1, spawn1);
+        team.setBedLocation(1, spawn1); // Bed placed at spawn
+        
+        // Generator: Center + Generator Offset
+        top.bearcabbage.twodimensional_bedwars.config.GameConfig.Offset gOff = teamConfig.generator;
+        BlockPos gen1 = new BlockPos(c1.x + gOff.dx, c1.y + gOff.dy, c1.z + gOff.dz);
+        team.addGenerator(gen1);
+        team.addLiveGenerator(new OreGenerator(gen1, item1, setting1.amount, setting1.delaySeconds, setting1.limit));
+        
+        // Base Blocks (Bed, No Platform)
+        net.minecraft.block.Block bedBlock = getBedBlock(name);
+        net.minecraft.util.math.Direction facing = getFacingTowardsCenter(sOff.dx, sOff.dz);
+        setupTeamBase(world, team, bedBlock, facing, spawn1);
+
+        // --- Arena 2 Setup ---
+        BlockPos spawn2 = new BlockPos(c2.x + sOff.dx, c2.y + sOff.dy, c2.z + sOff.dz);
+        team.setSpawnPoint(2, spawn2);
+        team.setBedLocation(2, spawn2);
+        
+        BlockPos gen2 = new BlockPos(c2.x + gOff.dx, c2.y + gOff.dy, c2.z + gOff.dz);
+        team.addGenerator(gen2);
+        team.addLiveGenerator(new OreGenerator(gen2, item2, setting2.amount, setting2.delaySeconds, setting2.limit));
+        
+        setupTeamBase(world, team, bedBlock, facing, spawn2);
+        
+        return team;
+    }
+    
+    private static top.bearcabbage.twodimensional_bedwars.config.GameConfig.GeneratorSetting getSettingForResource(top.bearcabbage.twodimensional_bedwars.config.GameConfig config, String type) {
+        if ("Gold".equalsIgnoreCase(type)) return config.goldGenerator;
+        if ("Quartz".equalsIgnoreCase(type)) return config.quartzGenerator;
+        return config.ironGenerator;
+    }
+    
+    private static net.minecraft.item.Item getItemForResource(String type) {
+        if ("Gold".equalsIgnoreCase(type)) return net.minecraft.item.Items.GOLD_INGOT;
+        if ("Quartz".equalsIgnoreCase(type)) return net.minecraft.item.Items.QUARTZ;
+        return net.minecraft.item.Items.IRON_INGOT;
+    }
+    
+    private static net.minecraft.block.Block getBedBlock(String name) {
+        if ("Red".equalsIgnoreCase(name)) return net.minecraft.block.Blocks.RED_BED;
+        if ("Blue".equalsIgnoreCase(name)) return net.minecraft.block.Blocks.BLUE_BED;
+        if ("Green".equalsIgnoreCase(name)) return net.minecraft.block.Blocks.GREEN_BED;
+        if ("Yellow".equalsIgnoreCase(name)) return net.minecraft.block.Blocks.YELLOW_BED;
+        return net.minecraft.block.Blocks.WHITE_BED;
+    }
+    
+    private static net.minecraft.util.math.Direction getFacingTowardsCenter(int dx, int dz) {
+        if (Math.abs(dx) > Math.abs(dz)) {
+            return dx > 0 ? net.minecraft.util.math.Direction.WEST : net.minecraft.util.math.Direction.EAST;
+        } else {
+            return dz > 0 ? net.minecraft.util.math.Direction.NORTH : net.minecraft.util.math.Direction.SOUTH;
+        }
+    }
+    
+    private static void setupTeamBase(net.minecraft.server.world.ServerWorld world, BedWarsTeam team, net.minecraft.block.Block bedBlock, net.minecraft.util.math.Direction facing, BlockPos spawnPos) {
+        // Bed Foot at Spawn, Head towards center (Facing)
+        BlockPos footPos = spawnPos;
+        BlockPos headPos = spawnPos.offset(facing); 
+        
+        world.setBlockState(headPos, bedBlock.getDefaultState().with(net.minecraft.block.BedBlock.PART, net.minecraft.block.enums.BedPart.HEAD).with(net.minecraft.block.BedBlock.FACING, facing));
+        world.setBlockState(footPos, bedBlock.getDefaultState().with(net.minecraft.block.BedBlock.PART, net.minecraft.block.enums.BedPart.FOOT).with(net.minecraft.block.BedBlock.FACING, facing));
     }
 }

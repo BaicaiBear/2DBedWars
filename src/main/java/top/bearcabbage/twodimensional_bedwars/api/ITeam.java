@@ -2,8 +2,8 @@ package top.bearcabbage.twodimensional_bedwars.api;
 
 import java.util.List;
 import java.util.UUID;
-
 import net.minecraft.util.math.BlockPos;
+import top.bearcabbage.twodimensional_bedwars.component.BedWarsPlayer;
 
 public interface ITeam {
     boolean isBedDestroyed();
@@ -11,6 +11,11 @@ public interface ITeam {
     void setBedDestroyed(boolean destroyed);
 
     List<UUID> getMembers();
+    
+    // New methods for BedWarsPlayer
+    void addPlayer(BedWarsPlayer player);
+    List<BedWarsPlayer> getPlayers();
+    BedWarsPlayer getPlayer(UUID uuid);
 
     List<BlockPos> getGenerators();
 

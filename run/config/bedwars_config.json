@@ -241,17 +241,17 @@
       "slot": 14,
       "itemId": "minecraft:iron_sword",
       "count": 1,
-      "costId": "minecraft:gold_ingot",
-      "price": 7,
+      "costId": "minecraft:iron_ingot",
+      "price": 16,
       "name": "Iron Sword"
     },
     {
       "slot": 16,
-      "itemId": "minecraft:golden_apple",
+      "itemId": "minecraft:stone_pickaxe",
       "count": 1,
-      "costId": "minecraft:gold_ingot",
-      "price": 3,
-      "name": "Golden Apple"
+      "costId": "minecraft:iron_ingot",
+      "price": 16,
+      "name": "Stone Pickaxe"
     }
   ],
   "goldShop": [

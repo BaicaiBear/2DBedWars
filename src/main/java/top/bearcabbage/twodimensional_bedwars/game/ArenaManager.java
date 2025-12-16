@@ -22,4 +22,17 @@ public class ArenaManager {
     public IArena getArena() {
         return arena;
     }
+    
+    public boolean startGame(net.minecraft.server.world.ServerWorld world, int teamCount) {
+        if (arena == null) return false;
+        if (arena.getStatus() != IArena.GameStatus.WAITING) return false;
+        arena.startGame(world, teamCount);
+        return true;
+    }
+    
+    public boolean stopGame() {
+        if (arena == null) return false;
+        arena.stopGame();
+        return true;
+    }
 }

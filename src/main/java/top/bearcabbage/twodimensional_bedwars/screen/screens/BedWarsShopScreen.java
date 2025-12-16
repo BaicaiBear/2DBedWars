@@ -75,13 +75,55 @@ public class BedWarsShopScreen extends AbstractACScreen {
         }
         
         if (totalCurrency >= cost.getCount()) {
-            player.getInventory().remove(item -> item.getItem() == cost.getItem(), cost.getCount(), player.getInventory());
-            player.getInventory().offerOrDrop(product.copy());
-            player.playSound(SoundEvents.ENTITY_EXPERIENCE_ORB_PICKUP, 1.0f, 1.0f);
-            player.sendMessage(Text.of("§aPurchased " + product.getName().getString() + "!"), true);
+            boolean handled = false;
+            
+            // Check if Tool Upgrade
+            top.bearcabbage.twodimensional_bedwars.api.IArena arena = top.bearcabbage.twodimensional_bedwars.game.ArenaManager.getInstance().getArena();
+            if (arena instanceof top.bearcabbage.twodimensional_bedwars.component.Arena arenaImpl) {
+                top.bearcabbage.twodimensional_bedwars.api.ITeam team = arenaImpl.getTeam(player);
+                if (team instanceof top.bearcabbage.twodimensional_bedwars.component.BedWarsTeam bwTeam) {
+                    top.bearcabbage.twodimensional_bedwars.component.BedWarsPlayer bwPlayer = bwTeam.getPlayer(player.getUuid());
+                    if (bwPlayer != null) {
+                        handled = tryHandleToolPurchase(bwPlayer, player, product);
+                    }
+                }
+            }
+            
+            if (handled) {
+                // Remove currency
+                player.getInventory().remove(item -> item.getItem() == cost.getItem(), cost.getCount(), player.getInventory());
+                player.playSound(SoundEvents.ENTITY_EXPERIENCE_ORB_PICKUP, 1.0f, 1.0f);
+                player.sendMessage(Text.of("§aUpgraded " + product.getName().getString() + "!"), true);
+            } else {
+                // Normal Purchase
+                player.getInventory().remove(item -> item.getItem() == cost.getItem(), cost.getCount(), player.getInventory());
+                player.getInventory().offerOrDrop(product.copy());
+                player.playSound(SoundEvents.ENTITY_EXPERIENCE_ORB_PICKUP, 1.0f, 1.0f);
+                player.sendMessage(Text.of("§aPurchased " + product.getName().getString() + "!"), true);
+            }
         } else {
             player.playSound(SoundEvents.ENTITY_VILLAGER_NO, 1.0f, 1.0f);
             player.sendMessage(Text.of("§cNot enough resources! Need " + cost.getCount() + " " + cost.getName().getString()), true);
         }
+    }
+    
+    private boolean tryHandleToolPurchase(top.bearcabbage.twodimensional_bedwars.component.BedWarsPlayer bwPlayer, ServerPlayerEntity player, ItemStack product) {
+        Item item = product.getItem();
+        if (item == Items.WOODEN_SWORD) return bwPlayer.tryUpgradeSword(player, 1);
+        if (item == Items.STONE_SWORD) return bwPlayer.tryUpgradeSword(player, 2);
+        if (item == Items.IRON_SWORD) return bwPlayer.tryUpgradeSword(player, 3);
+        if (item == Items.DIAMOND_SWORD) return bwPlayer.tryUpgradeSword(player, 4);
+        
+        if (item == Items.WOODEN_PICKAXE) return bwPlayer.tryUpgradePickaxe(player, 1);
+        if (item == Items.STONE_PICKAXE) return bwPlayer.tryUpgradePickaxe(player, 2);
+        if (item == Items.IRON_PICKAXE) return bwPlayer.tryUpgradePickaxe(player, 3);
+        if (item == Items.DIAMOND_PICKAXE) return bwPlayer.tryUpgradePickaxe(player, 4);
+        
+        if (item == Items.WOODEN_AXE) return bwPlayer.tryUpgradeAxe(player, 1);
+        if (item == Items.STONE_AXE) return bwPlayer.tryUpgradeAxe(player, 2);
+        if (item == Items.IRON_AXE) return bwPlayer.tryUpgradeAxe(player, 3);
+        if (item == Items.DIAMOND_AXE) return bwPlayer.tryUpgradeAxe(player, 4);
+        
+        return false;
     }
 }
