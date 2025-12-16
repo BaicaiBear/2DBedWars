@@ -1,0 +1,283 @@
+{
+  "arena1": {
+    "resourceType": "Iron"
+  },
+  "arena2": {
+    "resourceType": "Quartz"
+  },
+  "baseOffsets": {
+    "team1": {
+      "spawn": {
+        "dx": 66,
+        "dy": -18,
+        "dz": 0
+      },
+      "generator": {
+        "dx": 82,
+        "dy": -20,
+        "dz": 0
+      }
+    },
+    "team2": {
+      "spawn": {
+        "dx": -66,
+        "dy": -18,
+        "dz": 0
+      },
+      "generator": {
+        "dx": -82,
+        "dy": -20,
+        "dz": 0
+      }
+    },
+    "team3": {
+      "spawn": {
+        "dx": 0,
+        "dy": -18,
+        "dz": 66
+      },
+      "generator": {
+        "dx": 0,
+        "dy": -20,
+        "dz": 82
+      }
+    },
+    "team4": {
+      "spawn": {
+        "dx": 0,
+        "dy": -18,
+        "dz": -66
+      },
+      "generator": {
+        "dx": 0,
+        "dy": -20,
+        "dz": -82
+      }
+    }
+  },
+  "arenaRestoreConfig": {
+    "arena1Bounds": {
+      "center": {
+        "x": 0,
+        "y": 85,
+        "z": 0
+      },
+      "radius": {
+        "x": 100,
+        "y": 45,
+        "z": 100
+      }
+    },
+    "arena2Bounds": {
+      "center": {
+        "x": 400,
+        "y": 85,
+        "z": 0
+      },
+      "radius": {
+        "x": 100,
+        "y": 45,
+        "z": 100
+      }
+    },
+    "arena1Template": {
+      "center": {
+        "x": 0,
+        "y": 85,
+        "z": 0
+      },
+      "radius": {
+        "x": 100,
+        "y": 45,
+        "z": 100
+      }
+    },
+    "arena2Template": {
+      "center": {
+        "x": 0,
+        "y": 85,
+        "z": 0
+      },
+      "radius": {
+        "x": 100,
+        "y": 45,
+        "z": 100
+      }
+    }
+  },
+  "ironGenerator": {
+    "amount": 1,
+    "delaySeconds": 0.5,
+    "limit": 48
+  },
+  "goldGenerator": {
+    "amount": 1,
+    "delaySeconds": 2.0,
+    "limit": 12
+  },
+  "diamondGenerator": {
+    "amount": 1,
+    "delaySeconds": 15.0,
+    "limit": 4
+  },
+  "emeraldGenerator": {
+    "amount": 1,
+    "delaySeconds": 30.0,
+    "limit": 2
+  },
+  "quartzGenerator": {
+    "amount": 1,
+    "delaySeconds": 0.5,
+    "limit": 64
+  },
+  "netheriteGenerator": {
+    "amount": 1,
+    "delaySeconds": 45.0,
+    "limit": 2
+  },
+  "baseGeneratorRecipes": [
+    {
+      "level": 0,
+      "resourceType": "minecraft:iron_ingot",
+      "delaySeconds": 1.0,
+      "amount": 1,
+      "limit": 48
+    },
+    {
+      "level": 1,
+      "resourceType": "minecraft:iron_ingot",
+      "delaySeconds": 0.7,
+      "amount": 1,
+      "limit": 48
+    },
+    {
+      "level": 1,
+      "resourceType": "minecraft:gold_ingot",
+      "delaySeconds": 4.0,
+      "amount": 1,
+      "limit": 12
+    },
+    {
+      "level": 2,
+      "resourceType": "minecraft:iron_ingot",
+      "delaySeconds": 0.5,
+      "amount": 1,
+      "limit": 64
+    },
+    {
+      "level": 2,
+      "resourceType": "minecraft:gold_ingot",
+      "delaySeconds": 3.0,
+      "amount": 1,
+      "limit": 16
+    },
+    {
+      "level": 3,
+      "resourceType": "minecraft:emerald",
+      "delaySeconds": 10.0,
+      "amount": 1,
+      "limit": 2
+    }
+  ],
+  "arena1DiamondGenerators": [
+    {
+      "dx": 0,
+      "dy": 0,
+      "dz": 20
+    },
+    {
+      "dx": 0,
+      "dy": 0,
+      "dz": -20
+    }
+  ],
+  "arena1EmeraldGenerators": [
+    {
+      "dx": 0,
+      "dy": 0,
+      "dz": 0
+    }
+  ],
+  "arena2GoldGenerators": [
+    {
+      "dx": 10,
+      "dy": 0,
+      "dz": 10
+    }
+  ],
+  "arena2NetheriteGenerators": [
+    {
+      "dx": -10,
+      "dy": 0,
+      "dz": -10
+    }
+  ],
+  "ironShop": [
+    {
+      "slot": 10,
+      "itemId": "minecraft:white_wool",
+      "count": 16,
+      "costId": "minecraft:iron_ingot",
+      "price": 4,
+      "name": "White Wool"
+    },
+    {
+      "slot": 11,
+      "itemId": "minecraft:oak_planks",
+      "count": 16,
+      "costId": "minecraft:gold_ingot",
+      "price": 4,
+      "name": "Oak Planks"
+    },
+    {
+      "slot": 13,
+      "itemId": "minecraft:stone_sword",
+      "count": 1,
+      "costId": "minecraft:iron_ingot",
+      "price": 10,
+      "name": "Stone Sword"
+    },
+    {
+      "slot": 14,
+      "itemId": "minecraft:iron_sword",
+      "count": 1,
+      "costId": "minecraft:gold_ingot",
+      "price": 7,
+      "name": "Iron Sword"
+    },
+    {
+      "slot": 16,
+      "itemId": "minecraft:golden_apple",
+      "count": 1,
+      "costId": "minecraft:gold_ingot",
+      "price": 3,
+      "name": "Golden Apple"
+    }
+  ],
+  "goldShop": [
+    {
+      "slot": 10,
+      "itemId": "minecraft:white_wool",
+      "count": 64,
+      "costId": "minecraft:iron_ingot",
+      "price": 8,
+      "name": "Mega Wool"
+    },
+    {
+      "slot": 11,
+      "itemId": "minecraft:obsidian",
+      "count": 4,
+      "costId": "minecraft:gold_ingot",
+      "price": 8,
+      "name": "Obsidian"
+    },
+    {
+      "slot": 13,
+      "itemId": "minecraft:diamond_sword",
+      "count": 1,
+      "costId": "minecraft:gold_ingot",
+      "price": 5,
+      "name": "Diamond Sword"
+    }
+  ]
+}
