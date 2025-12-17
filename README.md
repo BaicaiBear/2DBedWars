@@ -59,8 +59,13 @@ For detailed gameplay guides and technical stats, please refer to:
 | `/bedwars join`      | Join the game lobby.                                      |
 | `/bedwars start`     | start the game countdown.                                 |
 | `/bedwars team <id>` | Select a team (`1=Red`, `2=Blue`, `3=Green`, `4=Yellow`). |
-| `/bedwars spectate`  | Join as a spectator.                                      |
+| `/bedwars spectate`  | Join as a spectator (only during active games).           |
 | `/bedwars leave`     | Leave the game (requires confirmation if playing).        |
+
+> **Note**: 
+> - Each team can have up to **8 players**
+> - Teams must have **at least 1 player** to participate
+> - Players can **only spectate** games in progress - cannot join mid-game
 
 ### Admin Commands
 *(Requires OP / Permission Level 2)*

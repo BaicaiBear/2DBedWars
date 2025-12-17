@@ -19,6 +19,27 @@ The game takes place in a world split into two distinct arenas. You are not just
 
 Each team has symmetrical spawns in both arenas, with Nether Portals connecting their bases.
 
+## 🎮 Getting Started
+
+### Joining a Game
+
+1.   **Join the lobby**: Use `/bedwars join` to enter the waiting area
+2.   **Select your team**: Use `/bedwars team <id>` where:
+     *   `1` = Red Team
+     *   `2` = Blue Team
+     *   `3` = Green Team
+     *   `4` = Yellow Team
+3.   **Wait for start**: Any player can use `/bedwars start` to begin the countdown
+4.   **Game begins**: After map restoration, you'll be teleported to your base
+
+### Pre-Game Rules
+
+*   Teams can have **1-8 players** each
+*   At least **one team** must have a player to start
+*   You can **change teams** before the game starts
+*   Once the game begins, team selection is **locked**
+*   The lobby is in a different dimension - you'll be teleported to the arena
+
 ## ⚔️ Gameplay Mechanics
 
 ### 1. Death Swap & Respawn System
@@ -58,6 +79,20 @@ Before each game starts, the arenas are automatically restored:
 *   **Countdown**: Once restored, a countdown begins before the game starts
 
 This ensures every game starts with a fresh, clean arena!
+
+### Scoreboard System
+
+During the game, a sidebar scoreboard displays important information:
+
+*   **Game Title**: "2D BEDWARS" at the top
+*   **Next Event**: Shows the upcoming game event and countdown timer
+*   **Team Status**: For each team:
+    *   Team name and color
+    *   Bed status: ✓ (intact) or ✗ (destroyed) for each arena
+    *   Number of alive players
+*   **Your Stats**: Personal kill/death statistics
+
+The scoreboard updates in real-time to keep you informed of the match status!
 
 ### 3. Resource Split
 Resources are distributed between the dimensions to force cross-dimensional play. You cannot camp in one world forever if you want the best gear.
@@ -132,7 +167,7 @@ Events occur at specific times during the match to speed up gameplay and force a
 | **Ladder** (16)         | 4 Iron       | Essential for vertical movement                        |
 | **Wood Planks** (16)    | 16 Iron      | Balanced cost and durability                           |
 | **Cherry Leaves** (16)  | 4 Quartz     | Camouflage blocks available in Nether                  |
-| **Blast-Proof Glass** (8) | 12 Quartz | **Special**: Immune to explosions!                     |
+| **Blast-Proof Glass** (8) | 12 Quartz | **Special**: 100% immune to ALL explosions (including Sudden Death!) |
 | **End Stone** (12)      | 24 Quartz    | Strong defense block                                   |
 | **Obsidian** (4)        | 4 Netherite  | Nearly indestructible, excellent bed defense           |
 
@@ -298,7 +333,10 @@ Events occur at specific times during the match to speed up gameplay and force a
 **A:** Visit the Nether arena's central Netherite generators. They spawn every 55s (Tier I), 40s (Tier II), or 30s (Tier III).
 
 ### Q: Can I place crafting tables or furnaces?
-**A:** No, crafting is disabled. All items must be purchased from the shop.
+**A:** No, crafting is **completely disabled** in-game. The crafting grid won't work. All items must be purchased from the shop.
+
+### Q: Can I sleep in beds during the game?
+**A:** No, you cannot sleep in beds or set spawn points. Respawn points are fixed at your team's bases.
 
 ### Q: Does the Forge upgrade affect public generators?
 **A:** No. Forge upgrades only affect your team's base generators. Public generators upgrade automatically based on game events.
@@ -307,13 +345,27 @@ Events occur at specific times during the match to speed up gameplay and force a
 **A:** No. You can only break blocks that players have placed. Original map blocks are protected.
 
 ### Q: What happens during Sudden Death?
-**A:** After 36 minutes, **charged creepers** continuously spawn in both arenas. These are powered creepers with massive explosion radius - extremely dangerous!
+**A:** After 36 minutes, **charged creepers** continuously spawn in both arenas. These are powered creepers with massive explosion radius - extremely dangerous! During Sudden Death, creepers can destroy **ALL blocks**, even map blocks that are normally protected!
+
+### Q: How does explosion protection work?
+**A:** 
+*   **Map blocks**: Cannot be destroyed by TNT or fireballs (protected)
+*   **Player-placed blocks**: Can be destroyed by explosions
+*   **Blast-Proof Glass**: NEVER destroyed by any explosion (special)
+*   **Beds**: Can be destroyed by explosions
+*   **Sudden Death Exception**: During Sudden Death, charged creepers can destroy everything including map blocks!
 
 ### Q: How do team upgrades work?
 **A:** Team upgrades (Sharpness, Protection, Haste, Forge) are **permanent** once purchased and apply to **all team members** instantly. Multiple teammates can contribute to buying them.
 
 ### Q: Can I rejoin if I leave the game?
-**A:** If you leave during an active match, you'll need to confirm the command twice. Leaving may result in team elimination if you're the last member.
+**A:** If you leave during an active match, you'll need to confirm the command twice. Leaving may result in team elimination if you're the last member. You **cannot rejoin** a game in progress - you can only spectate.
+
+### Q: How many players can be on each team?
+**A:** Each team can have up to **8 players**. The game supports 4 teams (Red, Blue, Green, Yellow) for a maximum of 32 players total.
+
+### Q: What's the minimum number of players to start?
+**A:** Each team that's participating must have **at least 1 player**. You can play with as few as 2 players (1 vs 1) or as many as 32 players (8v8v8v8).
 
 ### Q: What's the best resource priority?
 **A:** 
