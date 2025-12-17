@@ -194,5 +194,161 @@ The server will start with the mod loaded. Connect via `localhost:25565`.
 /bedwars reload        # Reload config (OP required)
 ```
 
+## 🔌 API & Extension Points
+
+### Custom Dimension System
+
+The mod creates a custom dimension `two-dimensional-bedwars:arena` with:
+
+*   **SplitBiomeSource**: Generates split biomes (desert at x<200, nether at x>=200)
+*   **ArenaChunkGenerator**: Custom chunk generation for the arena layout
+*   **Blueprint Dimension**: Template dimension used for map restoration
+
+### Implementing Custom Items
+
+Custom items use NBT tags for identification:
+
+```java
+ItemStack item = new ItemStack(Items.EGG);
+NbtCompound nbt = new NbtCompound();
+nbt.putString("bedwars:item_type", "BRIDGE_EGG");
+item.set(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(nbt));
+```
+
+Register handlers in `CustomItemHandler.init()`:
+
+```java
+UseItemCallback.EVENT.register((player, world, hand) -> {
+    String type = getSpecialType(stack);
+    if ("MY_ITEM".equals(type)) {
+        // Handle custom item logic
+        return ActionResult.SUCCESS;
+    }
+    return ActionResult.PASS;
+});
+```
+
+### Shop System Extension
+
+Extend the shop by modifying `bedwars_config.json`:
+
+```json
+{
+  "shop": [
+    {
+      "slot": 35,
+      "itemId": "minecraft:netherite_ingot",
+      "count": 1,
+      "costId": "minecraft:emerald",
+      "price": 10,
+      "name": "custom.translation.key",
+      "type": "ITEM",
+      "upgradeTier": 0,
+      "specialType": "MY_CUSTOM_TYPE"
+    }
+  ]
+}
+```
+
+Then handle the special type in `BedWarsShopScreen.java`.
+
+### Event System
+
+Add custom game events:
+
+```java
+public class GamePlayingTask {
+    private void registerEvents() {
+        events.add(new GameEvent(
+            Text.literal("My Event"),
+            300, // 5 minutes in seconds
+            (world) -> {
+                // Custom event logic
+                arena.broadcastToGame(server, Text.literal("Event triggered!"));
+            }
+        ));
+    }
+}
+```
+
+### Resource Generator API
+
+Create custom generators:
+
+```java
+OreGenerator generator = new OreGenerator(
+    world, 
+    blockPos,
+    Items.CUSTOM_ITEM,
+    amount,
+    delaySeconds,
+    limit,
+    "DisplayName"
+);
+arena.addPublicGenerator(generator);
+```
+
+## 🌐 Internationalization
+
+The mod supports multiple languages through JSON files in `assets/two-dimensional-bedwars/lang/`:
+
+*   `en_us.json` - English (US)
+*   `zh_cn.json` - Chinese (Simplified)
+
+To add a new language:
+
+1. Create `<language_code>.json` in the `lang` directory
+2. Translate all keys from `en_us.json`
+3. Submit a pull request
+
+## 🔍 Troubleshooting & Debug
+
+### Enable Debug Logging
+
+Add to `server.properties`:
+```properties
+debug=true
+```
+
+Or use logging in code:
+```java
+TwoDimensionalBedWars.LOGGER.info("Debug message");
+TwoDimensionalBedWars.LOGGER.error("Error message", exception);
+```
+
+### Common Issues
+
+**Issue**: Arena dimension not generating
+*   **Solution**: Delete `world/dimensions/two-dimensional-bedwars` folder and restart
+
+**Issue**: Generators not spawning items
+*   **Solution**: Check chunk loading with `/forceload query` - arena chunks may not be loaded
+
+**Issue**: Config changes not applying
+*   **Solution**: Use `/bedwars reload` or restart the server completely
+
+**Issue**: Shop items not working
+*   **Solution**: Verify JSON syntax in `bedwars_config.json` - one syntax error breaks the entire config
+
+## 🤝 Contributing
+
+We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines on:
+
+*   Development setup
+*   Code style guidelines
+*   Testing procedures
+*   Pull request process
+*   Bug reporting
+*   Feature requests
+
+## 📞 Support & Community
+
+*   **Issues**: [GitHub Issues](https://github.com/BaicaiBear/2DBedWars/issues)
+*   **Discussions**: [GitHub Discussions](https://github.com/BaicaiBear/2DBedWars/discussions)
+
 ## 📝 License
 This project is licensed under [GPL-3.0-only](LICENSE).
+
+---
+
+**Built with ❤️ using Fabric** | **Minecraft 1.21.8** | **Java 21**

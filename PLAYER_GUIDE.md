@@ -47,6 +47,18 @@ Vanilla Nether Portals are your gateways. Walking into a portal will instantly t
 
 **Pro Tip**: Keep your portals accessible and defended - they're essential for map mobility!
 
+### Map Restoration System
+
+Before each game starts, the arenas are automatically restored:
+
+*   **Automatic Cleanup**: All player-placed blocks are removed
+*   **Original Terrain**: Map resets to its original state from the blueprint dimension
+*   **Async Process**: Restoration happens in chunks to avoid lag
+*   **Progress Indicator**: You'll see "Waiting for Map Restoration..." before game start
+*   **Countdown**: Once restored, a countdown begins before the game starts
+
+This ensures every game starts with a fresh, clean arena!
+
 ### 3. Resource Split
 Resources are distributed between the dimensions to force cross-dimensional play. You cannot camp in one world forever if you want the best gear.
 
@@ -177,7 +189,7 @@ Events occur at specific times during the match to speed up gameplay and force a
 
 | Item                 | Cost        | Special Mechanics                                           |
 | :------------------- | :---------- | :---------------------------------------------------------- |
-| **Bridge Egg**       | 1 Emerald   | Throws egg that builds a bridge of blocks in its path      |
+| **Bridge Egg**       | 1 Emerald   | Throws egg that builds a **colored wool bridge** (matches your team) in its path      |
 | **Fireball**         | 32 Iron     | Launches a ghast-like explosive fireball                    |
 | **TNT**              | 1 Gold      | Auto-ignites when placed (4-second fuse)                    |
 | **Ender Pearl**      | 2 Netherite | Teleport to where it lands                                  |
@@ -331,6 +343,11 @@ Events occur at specific times during the match to speed up gameplay and force a
 8.   **Sponge Usage**: Sponges can quickly remove enemy water defenses
 9.   **Bow Spam**: Bows with Power + Punch can knock enemies off bridges and into voids
 10.  **Emergency Bridge Egg**: Keep one Bridge Egg for emergency escapes across large gaps
+11.  **Bridge Egg Colors**: Bridge Eggs automatically place wool in your team's color (Red/Blue/Green/Yellow wool)
+12.  **Bridge Path**: The egg builds 2 blocks wide as it flies, creating a stable platform
+13.  **Map Restoration**: Don't worry about leaving blocks everywhere - the map auto-restores between games
+14.  **Team Ender Chest**: Store valuable items (diamonds, emeralds) in the team chest to share with teammates
+15.  **Forge Priority**: Always upgrade forge first - passive income is crucial for long-term advantage
 
 ---
 
