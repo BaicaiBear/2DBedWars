@@ -16,6 +16,8 @@ import top.bearcabbage.twodimensional_bedwars.component.OreGenerator;
 import net.minecraft.util.Formatting;
 
 public class GamePlayingTask {
+    private static final double KD_RATIO_EPSILON = 0.0001;
+    
     private final Arena arena;
 
     // Events
@@ -320,7 +322,7 @@ public class GamePlayingTask {
         
         List<BedWarsTeam> topKdTeams = new ArrayList<>();
         for (BedWarsTeam team : topTeams) {
-            if (Math.abs(teamStatsMap.get(team).kdRatio - maxKdRatio) < 0.0001) { // Compare doubles with epsilon
+            if (Math.abs(teamStatsMap.get(team).kdRatio - maxKdRatio) < KD_RATIO_EPSILON) { // Compare doubles with epsilon
                 topKdTeams.add(team);
             }
         }
