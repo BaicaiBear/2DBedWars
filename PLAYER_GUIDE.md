@@ -5,22 +5,47 @@ Welcome to **2-Dimensional BedWars**, a unique twist on the classic minigame whe
 ## 🌌 The Concept: Split Worlds
 The game takes place in a world split into two distinct arenas. You are not just fighting on one front; you are fighting on two.
 
--   **Arena 1 (The Overworld)**: A desert-themed arena located in the first half of the world.
--   **Arena 2 (The Nether)**: A hellish landscape located in the second half of the world.
+-   **Arena 1 (The Overworld)**: A desert-themed arena located at coordinates around `X=0, Z=0`. Produces Iron, Diamond, and Emerald resources.
+-   **Arena 2 (The Nether)**: A hellish landscape located at coordinates around `X=400, Z=0`. Produces Quartz, Gold, and Netherite resources.
 
 **Every team has a base and a bed in BOTH arenas.** To win, you must destroy the beds of your enemies in **both dimensions**.
 
+### The Four Teams
+
+*   **Red Team**: Spawns at positive X coordinates
+*   **Blue Team**: Spawns at negative X coordinates  
+*   **Green Team**: Spawns at positive Z coordinates
+*   **Yellow Team**: Spawns at negative Z coordinates
+
+Each team has symmetrical spawns in both arenas, with Nether Portals connecting their bases.
+
 ## ⚔️ Gameplay Mechanics
 
-### 1. Death Swap
+### 1. Death Swap & Respawn System
 Using a custom respawn mechanic, **death is a portal**.
 -   If you die in the **Overworld**, you will respawn in the **Nether**.
 -   If you die in the **Nether**, you will respawn in the **Overworld**.
 
-This allows you to quickly switch fronts, but be careful: if your bed in the *target* dimension is destroyed, you cannot respawn there!
+**Respawn Rules:**
+*   **5-second cooldown**: After death, you wait 5 seconds before respawning
+*   **Target bed must exist**: If your bed in the target dimension is destroyed, you cannot respawn there
+*   **Both beds destroyed**: If both of your team's beds are destroyed, your next death is permanent (you become a spectator)
+*   **Team elimination**: A team is eliminated when both beds are destroyed AND all players are dead
+
+This mechanic allows strategic dimension switching but requires defending both bases!
 
 ### 2. Portal Travel
-Vanilla Nether Portals are your gateways. Walking into a portal will instantly teleport you between your team's Overworld base and Nether base. Use this to escape danger or coordinate attacks.
+Vanilla Nether Portals are your gateways. Walking into a portal will instantly teleport you between your team's Overworld base and Nether base. 
+
+**Portal Mechanics:**
+*   **Instant Travel**: No loading screen - immediate teleportation
+*   **Directional**: Portals only connect between your team's two bases
+*   **Safe Escape**: Use portals to flee from attackers or reposition quickly
+*   **Resource Collection**: Travel to gather resources from both dimensions
+*   **Bed Requirement**: Cannot teleport to a dimension if your bed there is destroyed
+*   **Tactical Uses**: Coordinate multi-front attacks or defend under pressure
+
+**Pro Tip**: Keep your portals accessible and defended - they're essential for map mobility!
 
 ### 3. Resource Split
 Resources are distributed between the dimensions to force cross-dimensional play. You cannot camp in one world forever if you want the best gear.
@@ -63,26 +88,251 @@ Resources spawn at public locations in the middle of each arena.
 | **II**  | 23s            | 40s                 |
 | **III** | 15s            | 30s                 |
 
-### ⏳ Game Events
-Events occur at specific times during the match to speed up gameplay.
+### ⏳ Game Events Timeline
 
--   **Diamond II**: 6 minutes
--   **Emerald II**: 12 minutes
--   **Diamond III**: 18 minutes
--   **Emerald III**: 24 minutes
--   **Bed Destruction**: 30 minutes (All beds are destroyed!)
--   **Sudden Death**: 36 minutes
--   **Game End**: 42 minutes (Draw)
+Events occur at specific times during the match to speed up gameplay and force action.
 
-### 🛒 Shop Highlights
-A selection of unique items available in the shop.
+| Time     | Event                  | Effect                                                        |
+| :------- | :--------------------- | :------------------------------------------------------------ |
+| **0:00** | **Game Start**         | Forge at Level 0: Iron 3/2s                                   |
+| **6:00** | **Diamond II**         | Diamond & Gold generators upgrade to 23s spawn rate           |
+| **12:00**| **Emerald II**         | Emerald & Netherite generators upgrade to 40s spawn rate      |
+| **18:00**| **Diamond III**        | Diamond & Gold generators upgrade to 15s spawn rate (MAX)     |
+| **24:00**| **Emerald III**        | Emerald & Netherite generators upgrade to 30s spawn rate (MAX)|
+| **30:00**| **Bed Destruction**    | 🔥 ALL remaining beds are destroyed automatically!            |
+| **36:00**| **Sudden Death**       | ⚡ Charged creepers spawn continuously in both arenas!        |
+| **42:00**| **Game End (Draw)**    | Game ends with no winner if teams still remain                |
 
-| Item             | Cost        | Note                              |
-| :--------------- | :---------- | :-------------------------------- |
-| **Bridge Egg**   | 1 Emerald   | Creates a bridge path in the air. |
-| **TNT**          | 1 Gold      | Explosive for raiding bases.      |
-| **Ender Pearl**  | 2 Netherite | Teleportation.                    |
-| **Fireball**     | 32 Iron     | Launch an explosive projectile.   |
-| **Obsidian** (4) | 4 Netherite | Indestructible (almost) defense.  |
-| **Golden Apple** | 2 Gold      | Healing and absorption.           |
+**Strategy Notes:**
+*   Rush for early kills before Diamond II (first 6 minutes)
+*   Collect emeralds between 12-18 minutes for powerful items
+*   After 30 minutes, **every death is permanent** - play cautiously!
+*   During Sudden Death (36m+), charged creepers are extremely dangerous
+
+## 🛒 Complete Shop Guide
+
+### 🧱 Building Blocks
+
+| Item                    | Cost         | Notes                                                  |
+| :---------------------- | :----------- | :----------------------------------------------------- |
+| **Wool** (16)           | 8 Iron       | Quick and cheap building material                      |
+| **Terracotta** (16)     | 12 Iron      | More durable than wool                                 |
+| **Ladder** (16)         | 4 Iron       | Essential for vertical movement                        |
+| **Wood Planks** (16)    | 16 Iron      | Balanced cost and durability                           |
+| **Cherry Leaves** (16)  | 4 Quartz     | Camouflage blocks available in Nether                  |
+| **Blast-Proof Glass** (8) | 12 Quartz | **Special**: Immune to explosions!                     |
+| **End Stone** (12)      | 24 Quartz    | Strong defense block                                   |
+| **Obsidian** (4)        | 4 Netherite  | Nearly indestructible, excellent bed defense           |
+
+### ⚔️ Weapons & Combat
+
+| Item                  | Cost         | Notes                                          |
+| :-------------------- | :----------- | :--------------------------------------------- |
+| **Stone Sword**       | 10 Quartz    | Tier 2 weapon                                  |
+| **Iron Sword**        | 64 Quartz    | Tier 3 weapon, expensive but powerful          |
+| **Diamond Sword**     | 6 Netherite  | Tier 4 weapon, ultimate melee damage           |
+| **Knockback Stick**   | 4 Gold       | Stick with Knockback enchantment for pushing   |
+| **Bow**               | 32 Quartz    | Basic ranged weapon                            |
+| **Bow (Power I)**     | 3 Gold       | Enhanced damage bow                            |
+| **Bow (Pow I, Pun I)**| 6 Gold       | Power + Punch combo bow                        |
+| **Arrow** (6)         | 6 Quartz     | Ammunition for bows                            |
+
+### 🛡️ Armor (Permanent Upgrades)
+
+| Item                | Cost        | Effect                                            |
+| :------------------ | :---------- | :------------------------------------------------ |
+| **Chainmail Armor** | 32 Iron     | Basic protection, permanent once purchased        |
+| **Iron Armor**      | 4 Diamond   | Better protection                                 |
+| **Diamond Armor**   | 10 Emerald  | Best armor, keeps on death if team bed survives   |
+
+**Important**: Armor is permanent and stays with you after death (if your bed is alive)!
+
+### 🛠️ Tools (Progressive Upgrades)
+
+**Pickaxes** (Progressive tiers - each unlocks the next):
+*   **Wood Pickaxe (Efficiency I)** - Tier 1: 10 Iron
+*   **Stone Pickaxe (Efficiency I)** - Tier 2: 10 Iron
+*   **Iron Pickaxe (Efficiency II)** - Tier 3: 2 Diamond
+*   **Diamond Pickaxe (Efficiency III)** - Tier 4: 6 Emerald
+
+**Axes** (Progressive tiers):
+*   **Wood Axe (Efficiency I)** - Tier 1: 10 Iron
+*   **Stone Axe (Efficiency II)** - Tier 2: 10 Iron
+*   **Iron Axe (Efficiency II)** - Tier 3: 2 Diamond
+*   **Diamond Axe (Efficiency III)** - Tier 4: 6 Emerald
+
+**Other Tools**:
+*   **Shears**: 20 Quartz - Break blocks faster (leaves, wool, etc.)
+
+### 🧪 Potions & Consumables
+
+| Item                         | Cost        | Effect                               |
+| :--------------------------- | :---------- | :----------------------------------- |
+| **Golden Apple**             | 2 Gold      | Instant healing + absorption         |
+| **Speed Potion** (45s)       | 1 Emerald   | Speed II for fast movement           |
+| **Jump Boost Potion** (45s)  | 1 Emerald   | Jump Boost IV for high jumps         |
+| **Invisibility Potion** (30s)| 2 Netherite | Turn invisible for stealth attacks   |
+
+### 🧨 Special Items
+
+| Item                 | Cost        | Special Mechanics                                           |
+| :------------------- | :---------- | :---------------------------------------------------------- |
+| **Bridge Egg**       | 1 Emerald   | Throws egg that builds a bridge of blocks in its path      |
+| **Fireball**         | 32 Iron     | Launches a ghast-like explosive fireball                    |
+| **TNT**              | 1 Gold      | Auto-ignites when placed (4-second fuse)                    |
+| **Ender Pearl**      | 2 Netherite | Teleport to where it lands                                  |
+| **Water Bucket**     | 12 Iron     | Reusable water source for MLG saves                         |
+| **Sponge** (4)       | 48 Iron     | Remove water quickly                                        |
+
+### 💎 Team Upgrades (Shared)
+
+**Forge Upgrade** (Increases base generator production):
+*   **Level 1**: 4 Diamond - Iron: 5/2s
+*   **Level 2**: 8 Diamond - Iron: 5/2s, Quartz: 1/5s
+*   **Level 3**: 4 Netherite - Iron: 5/2s, Quartz: 2/5s, Emerald: 1/20s
+*   **Level 4**: 16 Gold - Iron: 4/1s, Quartz: 4/5s, Emerald: 1/20s (MAX)
+
+**Protection** (Team armor enchantment):
+*   **Level 1**: 5 Diamond - Protection I on all armor
+*   **Level 2**: 10 Diamond - Protection II
+*   **Level 3**: 20 Diamond - Protection III  
+*   **Level 4**: 30 Diamond - Protection IV (MAX)
+
+**Sharpness** (Team weapon enchantment):
+*   **Levels 1-5**: 8 Gold each - Adds Sharpness I-V to all swords
+
+**Haste** (Mining speed boost):
+*   **Level 1**: 4 Gold - Haste I effect
+*   **Level 2**: 6 Gold - Haste II effect (MAX)
+
+**Team Upgrades are permanent for the entire team once purchased!**
+
+## 🎯 Advanced Strategies
+
+### Early Game (0-6 minutes)
+*   **Priority 1**: Upgrade your base forge to Level 1 (4 Diamonds)
+*   **Priority 2**: Get chainmail armor (32 Iron) for basic protection
+*   **Priority 3**: Buy a wood pickaxe to mine faster
+*   **Resource Focus**: Collect Iron and Diamonds from public generators
+*   **Team Coordination**: One player defends, others collect resources
+*   **Early Aggression**: Consider rushing enemy beds with TNT and blocks before they get defenses up
+
+### Mid Game (6-24 minutes)
+*   **Forge Upgrades**: Work towards Forge Level 2 and 3 for Quartz/Emerald production
+*   **Team Upgrades**: Invest in Sharpness and Protection upgrades
+*   **Better Gear**: Upgrade to Iron Armor (4 Diamond) and better tools
+*   **Map Control**: Secure public Diamond and Emerald generators
+*   **Bed Defense**: Use obsidian and blast-proof glass to protect both beds
+*   **Coordinate Attacks**: Split your team - attack one arena while defending the other
+
+### Late Game (24-30 minutes)
+*   **Full Upgrades**: Max out Protection and Sharpness if possible
+*   **Best Equipment**: Get Diamond Armor (10 Emerald) and Diamond tools
+*   **Eliminate Teams**: Focus on completely eliminating teams (both beds + all players)
+*   **Portal Control**: Secure your portals - they're your lifeline
+*   **Resource Hoarding**: Stock up on blocks, TNT, and Golden Apples
+
+### Final Phase (30+ minutes)
+*   **Survival Mode**: All beds are destroyed - every death is permanent!
+*   **Play Defensive**: Avoid unnecessary risks
+*   **Sudden Death (36m+)**: Watch out for charged creepers everywhere
+*   **End Game**: Eliminate remaining players to win
+
+## 🛡️ Defensive Tips
+
+### Bed Protection Strategies
+1.   **Layer Defense**: Surround beds with multiple layers (Wool → Terracotta → End Stone → Obsidian)
+2.   **Blast-Proof Glass**: Use for windows - you can see attackers but they can't explode through
+3.   **Trap Chambers**: Create narrow corridors with TNT traps
+4.   **Water Defense**: Place water near beds to slow TNT explosions
+5.   **Team Chest**: Use the team ender chest to share resources between dimensions
+
+### Arena-Specific Defense
+*   **Overworld**: Build upward and create sky bridges for quick rotation
+*   **Nether**: Use the terrain - lava and natural structures provide cover
+*   **Portal Protection**: Never leave portals undefended - they're invasion routes!
+
+## ⚔️ Offensive Tips
+
+### Raiding Enemy Bases
+*   **Scout First**: Use invisibility potions to check enemy defenses
+*   **Bring Resources**: At least 64 blocks, TNT (3-5), and a good sword
+*   **Bridge Building**: Use Bridge Eggs for quick access across gaps
+*   **TNT Placement**: Place TNT adjacent to beds, then light and run
+*   **Fireball Strategy**: Launch fireballs from a distance to break outer defenses
+*   **Ender Pearl Escape**: Keep an ender pearl for emergency escape after breaking a bed
+
+### Team Coordination
+*   **Split Attacks**: Attack both arenas simultaneously to divide enemy forces
+*   **Fake Rushes**: Send one player to distract while another goes for the bed
+*   **Resource Sharing**: Use team ender chest to distribute diamonds and emeralds
+*   **Communication**: Call out enemy positions and bed status constantly
+
+## ❓ Frequently Asked Questions
+
+### Q: Can I break my own bed?
+**A:** No! The game prevents you from breaking your team's beds. Only enemies can destroy them.
+
+### Q: What happens to my items when I die?
+**A:** You **drop all items** except permanent armor (if your bed is alive). Tools, weapons, and resources are lost on death.
+
+### Q: Can I change teams after the game starts?
+**A:** No. Team selection is locked once the game begins. Choose carefully!
+
+### Q: How do I access the Team Ender Chest?
+**A:** The game provides a team ender chest accessible by all team members. Items placed inside are shared across the entire team.
+
+### Q: What's the fastest way to get Netherite?
+**A:** Visit the Nether arena's central Netherite generators. They spawn every 55s (Tier I), 40s (Tier II), or 30s (Tier III).
+
+### Q: Can I place crafting tables or furnaces?
+**A:** No, crafting is disabled. All items must be purchased from the shop.
+
+### Q: Does the Forge upgrade affect public generators?
+**A:** No. Forge upgrades only affect your team's base generators. Public generators upgrade automatically based on game events.
+
+### Q: Can I break map blocks?
+**A:** No. You can only break blocks that players have placed. Original map blocks are protected.
+
+### Q: What happens during Sudden Death?
+**A:** After 36 minutes, **charged creepers** continuously spawn in both arenas. These are powered creepers with massive explosion radius - extremely dangerous!
+
+### Q: How do team upgrades work?
+**A:** Team upgrades (Sharpness, Protection, Haste, Forge) are **permanent** once purchased and apply to **all team members** instantly. Multiple teammates can contribute to buying them.
+
+### Q: Can I rejoin if I leave the game?
+**A:** If you leave during an active match, you'll need to confirm the command twice. Leaving may result in team elimination if you're the last member.
+
+### Q: What's the best resource priority?
+**A:** 
+1.   **Iron/Quartz**: Building blocks, basic tools, and daily purchases
+2.   **Diamond**: Team forge upgrades and protection upgrades (highest priority!)
+3.   **Gold**: Combat items (TNT, Golden Apples, Sharpness upgrades)
+4.   **Emerald**: Special items (Bridge Egg, Speed Potions, Diamond Armor)
+5.   **Netherite**: Ultimate items (Diamond Sword, Ender Pearl, Invisibility)
+
+### Q: How many generators are there?
+**A:** 
+*   **Team Generators**: Each team has 2 generators (one in each arena) that produce Iron/Quartz based on Forge level
+*   **Diamond Generators**: 4 generators in Overworld arena (shared)
+*   **Gold Generators**: 4 generators in Nether arena (shared)
+*   **Emerald Generators**: 2 generators in Overworld arena (shared)
+*   **Netherite Generators**: 2 generators in Nether arena (shared)
+
+## 🏆 Pro Tips
+
+1.   **Early Diamond Rush**: Sprint to public Diamond generators immediately at game start
+2.   **Portal Camping**: Hiding near enemy portals can catch players off-guard
+3.   **Resource Management**: Keep 16+ blocks on your hotbar at all times
+4.   **Golden Apple Timing**: Eat Golden Apples **before** engaging in combat for absorption
+5.   **Bed Defense Priority**: Protect Nether bed first - it's often less defended
+6.   **Tool Efficiency**: A Diamond Pickaxe (Eff III) breaks obsidian in ~2 seconds - worth the investment!
+7.   **Water Bucket Clutch**: Always keep a water bucket for fall damage prevention
+8.   **Sponge Usage**: Sponges can quickly remove enemy water defenses
+9.   **Bow Spam**: Bows with Power + Punch can knock enemies off bridges and into voids
+10.  **Emergency Bridge Egg**: Keep one Bridge Egg for emergency escapes across large gaps
+
+---
+
+**Good luck in the arenas! May your beds stay intact and your enemies' beds crumble! 🛏️⚔️**
 
