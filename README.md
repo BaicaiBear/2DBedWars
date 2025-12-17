@@ -63,4 +63,4 @@ For detailed gameplay guides and technical stats, please refer to:
     *   **`config`**: JSON configuration management.
 
 ## 📝 License
-This project is licensed under [CC0-1.0](LICENSE).
+This project is licensed under [GPL-3.0-only](LICENSE).
