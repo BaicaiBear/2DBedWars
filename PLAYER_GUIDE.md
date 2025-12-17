@@ -2,30 +2,20 @@
 
 Welcome to **2-Dimensional BedWars**, a unique twist on the classic minigame where you must defend bases in two parallel dimensions simultaneously!
 
-## 🔑 Key Differences from Traditional BedWars
+## 📋 Table of Contents
 
-*   **Dual Arenas**: You have bases in TWO dimensions (Overworld & Nether)
-*   **Death Swap**: Dying swaps you to the other dimension
-*   **Split Resources**: Different resources in each arena
-*   **Both Beds Matter**: Teams aren't eliminated until BOTH beds are destroyed
-*   **Portal Travel**: Instant teleportation between your bases
+### Essential Information
+1. [Getting Started](#-getting-started) - How to join and start a game
+2. [Core Mechanics](#%EF%B8%8F-core-mechanics) - Death swap, respawn, and portal travel
+3. [How to Win](#-how-to-win) - Victory conditions
+4. [Shop Guide](#-shop-guide) - Items, weapons, armor, and upgrades
 
-## 🌌 The Concept: Split Worlds
-The game takes place in a world split into two distinct arenas. You are not just fighting on one front; you are fighting on two.
+### Supplemental Information
+5. [Game Concept](#-game-concept) - Arena layout and team positions
+6. [Technical Details](#-technical-details) - Resource generators and event timeline
+7. [FAQ](#-faq) - Common questions and answers
 
--   **Arena 1 (The Overworld)**: A desert-themed arena located at coordinates around `X=0, Z=0`. Produces Iron, Diamond, and Emerald resources.
--   **Arena 2 (The Nether)**: A hellish landscape located at coordinates around `X=400, Z=0`. Produces Quartz, Gold, and Netherite resources.
-
-**Every team has a base and a bed in BOTH arenas.** To win, you must destroy the beds of your enemies in **both dimensions**.
-
-### The Four Teams
-
-*   **Red Team**: Spawns at positive X coordinates
-*   **Blue Team**: Spawns at negative X coordinates  
-*   **Green Team**: Spawns at positive Z coordinates
-*   **Yellow Team**: Spawns at negative Z coordinates
-
-Each team has symmetrical spawns in both arenas, with Nether Portals connecting their bases.
+---
 
 ## 🎮 Getting Started
 
@@ -58,10 +48,10 @@ The game automatically detects the mode based on team selections:
 *   The map restoration process begins
 
 **Step 5: Preparation Phase** (What You'll See)
-*   Message: "Waiting for Map Restoration..."
-*   The arena map resets to its original state (takes a few seconds)
-*   Message: "Map restored! Teleporting players..."
-*   **10-second countdown** begins
+*   **Action bar message**: "Game starting in X seconds!" (shown every second)
+*   If map restoration is still in progress, **action bar shows**: "Waiting for Map Restoration..."
+*   When map is ready, **chat message**: "Map restored! Teleporting players..."
+*   **10-second countdown** (shown in action bar)
 *   You'll be teleported to your team's spawn point in one of the arenas
 
 **Step 6: Game Begins!**
@@ -77,9 +67,9 @@ The game automatically detects the mode based on team selections:
 *   **Maximum per team**: 8 players per team
 *   **Mode selection**: Automatically switches between 2-team and 4-team based on player selections
 
-## ⚔️ Gameplay Mechanics
+## ⚔️ Core Mechanics
 
-### 1. Death Swap & Respawn System
+### Death Swap & Respawn System
 Using a custom respawn mechanic, **death is a portal**.
 -   If you die in the **Overworld**, you will respawn in the **Nether**.
 -   If you die in the **Nether**, you will respawn in the **Overworld**.
@@ -92,7 +82,7 @@ Using a custom respawn mechanic, **death is a portal**.
 
 This mechanic allows strategic dimension switching but requires defending both bases!
 
-### 2. Portal Travel
+### Portal Travel
 Vanilla Nether Portals are your gateways. Walking into a portal will instantly teleport you between your team's Overworld base and Nether base. 
 
 **Portal Mechanics:**
@@ -105,7 +95,7 @@ Vanilla Nether Portals are your gateways. Walking into a portal will instantly t
 
 **Pro Tip**: Keep your portals accessible and defended - they're essential for map mobility!
 
-### Map Restoration System
+### Map Restoration
 
 Before each game starts, the arenas are automatically restored:
 
@@ -117,7 +107,7 @@ Before each game starts, the arenas are automatically restored:
 
 This ensures every game starts with a fresh, clean arena!
 
-### Scoreboard System
+### Scoreboard
 
 During the game, a sidebar scoreboard displays important information:
 
@@ -149,6 +139,25 @@ Resources are distributed between the dimensions to force cross-dimensional play
 2.  Gather resources from both the Overworld and Nether.
 3.  Travel between worlds to outmaneuver your opponents.
 4.  Destroy both beds of an enemy team to eliminate them!
+
+## 🌌 Game Concept
+
+### Split World Arenas
+The game takes place in a world split into two distinct arenas:
+
+*   **Arena 1 (Overworld)**: Desert-themed arena at coordinates `X=0, Z=0`. Produces Iron, Diamond, and Emerald.
+*   **Arena 2 (Nether)**: Nether landscape at coordinates `X=400, Z=0`. Produces Quartz, Gold, and Netherite.
+
+**Every team has a base and a bed in BOTH arenas.** To win, destroy enemy beds in **both dimensions**.
+
+### The Four Teams
+
+*   **Red Team**: Spawns at positive X coordinates
+*   **Blue Team**: Spawns at negative X coordinates  
+*   **Green Team**: Spawns at positive Z coordinates
+*   **Yellow Team**: Spawns at negative Z coordinates
+
+Each team has symmetrical spawns in both arenas, connected by Nether Portals.
 
 ## 📊 Technical Details
 
@@ -193,7 +202,7 @@ Events occur at specific times during the match to speed up gameplay and force a
 *   After 30 minutes, **every death is permanent** - play cautiously!
 *   During Sudden Death (36m+), charged creepers are extremely dangerous
 
-## 🛒 Complete Shop Guide
+## 🛒 Shop Guide
 
 ### 🧱 Building Blocks
 
@@ -295,7 +304,7 @@ Events occur at specific times during the match to speed up gameplay and force a
 
 **Team Upgrades are permanent for the entire team once purchased!**
 
-## ❓ Frequently Asked Questions
+## ❓ FAQ
 
 ### Q: Can I break my own bed?
 **A:** No! The game prevents you from breaking your team's beds. Only enemies can destroy them.
