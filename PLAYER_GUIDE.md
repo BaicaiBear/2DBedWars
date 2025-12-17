@@ -39,7 +39,7 @@ Each team has symmetrical spawns in both arenas, with Nether Portals connecting 
 **Step 2: Select Your Team**
 *   Use command: `/bedwars team <id>` where:
     *   `1` = Red Team
-    *   `2` = Blue Team  
+    *   `2` = Blue Team
     *   `3` = Green Team
     *   `4` = Yellow Team
 *   You'll see: "Selected Team [TeamName] ([TeamColor])"
