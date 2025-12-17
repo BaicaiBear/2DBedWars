@@ -1,50 +1,50 @@
+/bedwars team 1
 /bedwars start
-/give @s minecraft:emerald 64
-/give @s minecraft:diamond 64
+/bedwars team 1
+/bedwars team 2
+/bedwars team 1
+/bedwars join
+/bedwars start
+/bedwars team 1
 /bedwars stop
-/bedwars team 3
 /bedwars start
-/gamemode creative
-/summon tnt
-/gamemode survival
 /bedwars stop
-/bedwars team 3
-/bedwars start
-/gamemode creative
-/gamemode survival
-/kill
-/give @s minecraft:netherite_ingot 64
+/bedwars join
 /bedwars stop
-/kill
-/bedwars team 3
 /bedwars start
-/time set day
-/gamemode creative
-/gamemode survival
-/summon pig
-/bedwars stop
-/bedwars team 3
+/bedwars join
+/bedwars team 2
 /bedwars start
-/give @s minecraft:gold_ingot 64
-/gamemode creative
-/bedwars stop
-/kill
-/bedwars team 3
+/bedwars join
+/bedwars leave
+/bedwars join
+/bedwars spectate
+/bedwars leave
+/bedwars spectate
+/bedwars leave
+/bedwars join
+/bedwars leave
+/bedwars join
+/bedwars leave
+/experience add @a 10000
+/bedwars join
+/give @a minecraft:diamond_helmet
+/bedwars join
 /bedwars start
-/bedwars reload
-/bedwars team 3
+/bedwars join
+/bedwars leave
+/bedwars join
 /bedwars start
-/bedwars team 3
+/bedwars join
 /bedwars start
-/give @s minecraft:gold_ingot 64
-/bedwars stop
-/bedwars team 3
+/bedwars leave
 /bedwars start
-/give @s minecraft:gold_ingot 64
-/bedwars stop
-/give @s minecraft:gold_ingot 64
-/bedwars team 3
+/bedwars join
 /bedwars start
-/give @s minecraft:gold_ingot 64
-/bedwars stop
-/kill
+/bedwars join
+/bedwars start
+/bedwars join
+/bedwars start
+/bedwars join
+/bedwars start
+/bedwars join

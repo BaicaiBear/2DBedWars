@@ -25,8 +25,8 @@ public class BedWarsShopScreen extends AbstractACScreen {
     }
 
     @Override
-    public String getName() {
-        return "§lBedWars Item Shop";
+    public Text getTitleText() {
+        return Text.translatable("two-dimensional-bedwars.shop.title");
     }
 
     @Override
@@ -67,6 +67,8 @@ public class BedWarsShopScreen extends AbstractACScreen {
                         currentLevel = bwPlayer.getPickaxeLevel();
                     else if (entry.type.equals("TOOL_AXE"))
                         currentLevel = bwPlayer.getAxeLevel();
+                    else if (entry.type.equals("TOOL_SWORD"))
+                        currentLevel = bwPlayer.getSwordLevel();
                 }
 
                 // Only show next tier
@@ -94,7 +96,7 @@ public class BedWarsShopScreen extends AbstractACScreen {
     private void addEntryButton(GameConfig.ShopEntry entry, Item item, Item currency, ServerPlayerEntity viewer,
             top.bearcabbage.twodimensional_bedwars.component.BedWarsTeam team,
             top.bearcabbage.twodimensional_bedwars.component.BedWarsPlayer bwPlayer) {
-        String currencyName = currency.getName().getString();
+
         Formatting color = Formatting.WHITE; // Default
         if (currency == Items.IRON_INGOT)
             color = Formatting.GRAY; // Iron = Gray
@@ -109,18 +111,34 @@ public class BedWarsShopScreen extends AbstractACScreen {
         else if (currency == Items.QUARTZ)
             color = Formatting.WHITE; // Quartz = White
 
-        String displayName = entry.name != null && !entry.name.isEmpty() ? entry.name : item.getName().getString();
+        Text currencyName = currency.getName().copy().formatted(color);
+
+        Text displayName;
+        if (entry.name == null || entry.name.isEmpty()) {
+            displayName = item.getName();
+        } else {
+            // Assume translation key if it contains dots, otherwise literal (legacy basic
+            // support)
+            if (entry.name.contains(".")) {
+                displayName = Text.translatable(entry.name);
+            } else {
+                displayName = Text.literal(entry.name);
+            }
+        }
 
         // Create display stack for the button with all properties applied
         ItemStack displayStack = new ItemStack(item);
         applySpecialProperties(viewer, entry, displayStack);
 
         setButton(entry.slot, ItemBuilder.start(displayStack) // Use the fully configured stack
-                .name("§a" + displayName)
+                .name(Text.empty().append(displayName).formatted(Formatting.GREEN))
                 .tooltip(
-                        "§7Price: " + color + entry.price + " " + currencyName,
-                        "",
-                        "§eClick to purchase!")
+                        Text.translatable("two-dimensional-bedwars.shop.price",
+                                Text.literal(entry.price + "").formatted(color),
+                                currencyName),
+                        Text.empty(),
+                        Text.translatable("two-dimensional-bedwars.shop.click_to_purchase")
+                                .formatted(Formatting.YELLOW))
                 .button(event -> {
                     if (entry.type.equals("ITEM")) {
                         buyItem(viewer, createProductStack(viewer, entry, item), new ItemStack(currency, entry.price),
@@ -168,21 +186,21 @@ public class BedWarsShopScreen extends AbstractACScreen {
                                     java.util.Optional.of(net.minecraft.potion.Potions.SWIFTNESS),
                                     java.util.Optional.empty(), java.util.List.of(), java.util.Optional.empty()));
                     stack.set(net.minecraft.component.DataComponentTypes.CUSTOM_NAME,
-                            net.minecraft.text.Text.of("§bSpeed II Potion (45s)"));
+                            net.minecraft.text.Text.translatable("two-dimensional-bedwars.shop.potion.speed"));
                 } else if (entry.specialType.equals("POTION_JUMP")) {
                     stack.set(net.minecraft.component.DataComponentTypes.POTION_CONTENTS,
                             new net.minecraft.component.type.PotionContentsComponent(
                                     java.util.Optional.of(net.minecraft.potion.Potions.LEAPING),
                                     java.util.Optional.empty(), java.util.List.of(), java.util.Optional.empty()));
                     stack.set(net.minecraft.component.DataComponentTypes.CUSTOM_NAME,
-                            net.minecraft.text.Text.of("§aJump Boost IV Potion (45s)"));
+                            net.minecraft.text.Text.translatable("two-dimensional-bedwars.shop.potion.jump"));
                 } else if (entry.specialType.equals("POTION_INVISIBILITY")) {
                     stack.set(net.minecraft.component.DataComponentTypes.POTION_CONTENTS,
                             new net.minecraft.component.type.PotionContentsComponent(
                                     java.util.Optional.of(net.minecraft.potion.Potions.INVISIBILITY),
                                     java.util.Optional.empty(), java.util.List.of(), java.util.Optional.empty()));
                     stack.set(net.minecraft.component.DataComponentTypes.CUSTOM_NAME,
-                            net.minecraft.text.Text.of("§7Invisibility Potion (30s)"));
+                            net.minecraft.text.Text.translatable("two-dimensional-bedwars.shop.potion.invis"));
                 }
             } else if (entry.specialType.equals("KNOCKBACK_STICK")) {
                 registryLookup.getOptional(RegistryKeys.ENCHANTMENT)
@@ -222,7 +240,7 @@ public class BedWarsShopScreen extends AbstractACScreen {
 
         if (totalCurrency < cost.getCount()) {
             player.playSound(SoundEvents.ENTITY_VILLAGER_NO, 1.0f, 1.0f);
-            player.sendMessage(Text.of("§cNot enough resources!"), true);
+            player.sendMessage(Text.translatable("two-dimensional-bedwars.shop.not_enough_resources"), true);
             return;
         }
 
@@ -236,6 +254,8 @@ public class BedWarsShopScreen extends AbstractACScreen {
                     currentLevel = bwPlayer.getPickaxeLevel();
                 else if (entry.type.equals("TOOL_AXE"))
                     currentLevel = bwPlayer.getAxeLevel();
+                else if (entry.type.equals("TOOL_SWORD"))
+                    currentLevel = bwPlayer.getSwordLevel();
             }
         } else {
             if (team != null) {
@@ -251,11 +271,11 @@ public class BedWarsShopScreen extends AbstractACScreen {
         }
 
         if (entry.upgradeTier <= currentLevel) {
-            player.sendMessage(Text.of("§cAlready purchased!"), true);
+            player.sendMessage(Text.translatable("two-dimensional-bedwars.shop.already_purchased"), true);
             return;
         }
         if (entry.upgradeTier > currentLevel + 1) {
-            player.sendMessage(Text.of("§cUnlock previous tier first!"), true);
+            player.sendMessage(Text.translatable("two-dimensional-bedwars.shop.unlock_previous"), true);
             return;
         }
 
@@ -268,7 +288,11 @@ public class BedWarsShopScreen extends AbstractACScreen {
                     bwPlayer.tryUpgradePickaxe(player, entry.upgradeTier);
                 else if (entry.type.equals("TOOL_AXE"))
                     bwPlayer.tryUpgradeAxe(player, entry.upgradeTier);
-                player.sendMessage(Text.of("§aUpgraded Tool: " + entry.name), true);
+                else if (entry.type.equals("TOOL_SWORD"))
+                    bwPlayer.tryUpgradeSword(player, entry.upgradeTier);
+                Text itemNameText = (entry.name.contains(".")) ? Text.translatable(entry.name)
+                        : Text.literal(entry.name);
+                player.sendMessage(Text.translatable("two-dimensional-bedwars.shop.upgraded_tool", itemNameText), true);
             }
         } else {
             if (team != null) {
@@ -281,7 +305,10 @@ public class BedWarsShopScreen extends AbstractACScreen {
                 else if (entry.type.equals("UPGRADE_FORGE"))
                     team.setForgeLevel(entry.upgradeTier);
 
-                player.sendMessage(Text.of("§aTeam Upgrade Unlocked: " + entry.name), false);
+                Text itemNameText = (entry.name.contains(".")) ? Text.translatable(entry.name)
+                        : Text.literal(entry.name);
+                player.sendMessage(Text.translatable("two-dimensional-bedwars.shop.upgrade_unlocked", itemNameText),
+                        false);
             }
         }
         init(player);
@@ -307,7 +334,13 @@ public class BedWarsShopScreen extends AbstractACScreen {
                     top.bearcabbage.twodimensional_bedwars.component.BedWarsPlayer bwPlayer = bwTeam
                             .getPlayer(player.getUuid());
                     if (bwPlayer != null) {
-                        handled = tryHandleToolOrArmorPurchase(bwPlayer, player, product, entry);
+                        // Check for Tool Upgrades (Sword, Pickaxe, Axe)
+                        if (handleToolUpgradePurchase(bwPlayer, player, product, entry)) {
+                            handled = true;
+                        } else {
+                            // Fallback to existing logic
+                            handled = tryHandleToolOrArmorPurchase(bwPlayer, player, product, entry);
+                        }
                     }
                 }
             }
@@ -316,14 +349,15 @@ public class BedWarsShopScreen extends AbstractACScreen {
                 player.getInventory().remove(item -> item.getItem() == cost.getItem(), cost.getCount(),
                         player.getInventory());
                 player.playSound(SoundEvents.ENTITY_EXPERIENCE_ORB_PICKUP, 1.0f, 1.0f);
-                player.sendMessage(Text.of("§aUpgraded/Equipped " + product.getName().getString() + "!"), true);
+                player.sendMessage(Text.translatable("two-dimensional-bedwars.shop.equipped", product.getName()), true);
                 init(player);
             } else {
                 player.getInventory().remove(item -> item.getItem() == cost.getItem(), cost.getCount(),
                         player.getInventory());
                 player.getInventory().offerOrDrop(product.copy());
                 player.playSound(SoundEvents.ENTITY_EXPERIENCE_ORB_PICKUP, 1.0f, 1.0f);
-                player.sendMessage(Text.of("§aPurchased " + product.getName().getString() + "!"), true);
+                player.sendMessage(Text.translatable("two-dimensional-bedwars.shop.purchased", product.getName()),
+                        true);
                 init(player);
 
                 if (entry.specialType != null && entry.specialType.equals("SHEARS")) {
@@ -343,9 +377,59 @@ public class BedWarsShopScreen extends AbstractACScreen {
         } else {
             player.playSound(SoundEvents.ENTITY_VILLAGER_NO, 1.0f, 1.0f);
             player.sendMessage(
-                    Text.of("§cNot enough resources! Need " + cost.getCount() + " " + cost.getName().getString()),
+                    Text.translatable("two-dimensional-bedwars.shop.need_resources", cost.getCount(), cost.getName()),
                     true);
         }
+    }
+
+    private boolean handleToolUpgradePurchase(
+            top.bearcabbage.twodimensional_bedwars.component.BedWarsPlayer bwPlayer, ServerPlayerEntity player,
+            ItemStack product, GameConfig.ShopEntry entry) {
+
+        String itemId = net.minecraft.registry.Registries.ITEM.getId(product.getItem()).getPath().toUpperCase();
+
+        // Define Tool Levels
+        int level = 0;
+        if (itemId.contains("WOODEN"))
+            level = 1;
+        else if (itemId.contains("STONE"))
+            level = 2;
+        else if (itemId.contains("IRON"))
+            level = 3;
+        else if (itemId.contains("DIAMOND"))
+            level = 4;
+
+        if (level == 0)
+            return false; // Not a tiered tool execution
+
+        if (itemId.endsWith("_SWORD")) {
+            if (bwPlayer.tryUpgradeSword(player, level))
+                return true;
+            // If return false, it means current level >= new level.
+            // We return true here to "consume" the action but maybe prevent purchase?
+            // Or if we return false, it will fall through to normal buy (which duplicates
+            // items).
+            // We want to Block purchase if downgrade.
+            player.sendMessage(Text.translatable("two-dimensional-bedwars.shop.already_purchased"), true);
+            return true;
+        }
+
+        if (itemId.endsWith("_PICKAXE")) {
+            if (bwPlayer.tryUpgradePickaxe(player, level))
+                return true;
+            player.sendMessage(Text.translatable("two-dimensional-bedwars.shop.already_purchased"), true);
+            return true;
+        }
+
+        // Axe (Check for _AXE and NOT Pickaxe)
+        if (itemId.endsWith("_AXE") && !itemId.contains("PICKAXE")) {
+            if (bwPlayer.tryUpgradeAxe(player, level))
+                return true;
+            player.sendMessage(Text.translatable("two-dimensional-bedwars.shop.already_purchased"), true);
+            return true;
+        }
+
+        return false;
     }
 
     private boolean tryHandleToolOrArmorPurchase(

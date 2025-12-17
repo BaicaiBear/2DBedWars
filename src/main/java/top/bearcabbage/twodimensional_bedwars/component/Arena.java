@@ -60,6 +60,21 @@ public class Arena implements IArena {
         this.publicGenerators = new ArrayList<>();
     }
 
+    private void setChunksForced(ServerWorld world, boolean forced) {
+        // Arena 1: (0,0) radius ~120 blocks -> -8 to 8 chunks
+        for (int cx = -8; cx <= 8; cx++) {
+            for (int cz = -8; cz <= 8; cz++) {
+                world.setChunkForced(cx, cz, forced);
+            }
+        }
+        // Arena 2: (400,0) -> Chunk 25. Radius ~120 blocks -> 17 to 33
+        for (int cx = 17; cx <= 33; cx++) {
+            for (int cz = -8; cz <= 8; cz++) {
+                world.setChunkForced(cx, cz, forced);
+            }
+        }
+    }
+
     // Generators not belonging to any team
     private final List<OreGenerator> publicGenerators;
 
@@ -89,6 +104,46 @@ public class Arena implements IArena {
     }
 
     // Inner class or Interface to expose data without making everything public
+    // Helper for broadcasting to all relevant players (Participants + Spectators)
+    // Better implementation:
+    // We need a server reference.
+    // if (this.gameWorld != null)
+    // else if (!teams.isEmpty()) {
+    // try to find via team members
+    // }
+
+    // Actually, we can just use the server reference from a playerContext or pass
+    // it.
+    // But since we are inside Arena, we might not have a permanent server ref if
+    // gameWorld is null.
+    // However, `tick` provides `world`.
+    public void broadcastToGame(MinecraftServer server, Text message) {
+        java.util.Set<UUID> targets = new java.util.HashSet<>();
+        targets.addAll(getParticipantUUIDs());
+        targets.addAll(spectators);
+
+        for (UUID uuid : targets) {
+            ServerPlayerEntity p = server.getPlayerManager().getPlayer(uuid);
+            if (p != null) {
+                p.sendMessage(message, false);
+            }
+        }
+    }
+
+    // Action Bar Version
+    public void broadcastActionbarToGame(MinecraftServer server, Text message) {
+        java.util.Set<UUID> targets = new java.util.HashSet<>();
+        targets.addAll(getParticipantUUIDs());
+        targets.addAll(spectators);
+
+        for (UUID uuid : targets) {
+            ServerPlayerEntity p = server.getPlayerManager().getPlayer(uuid);
+            if (p != null) {
+                p.networkHandler.sendPacket(new net.minecraft.network.packet.s2c.play.OverlayMessageS2CPacket(message));
+            }
+        }
+    }
+
     public static class ArenaData {
         private final Arena arena;
 
@@ -114,8 +169,9 @@ public class Arena implements IArena {
     }
 
     public boolean setPreferredTeam(UUID uuid, String teamName) {
-        if (status == GameStatus.WAITING) {
+        if (status == GameStatus.WAITING || status == GameStatus.STARTING) {
             preferredTeams.put(uuid, teamName);
+            waitingPlayers.add(uuid); // Join Game
             return true;
         }
         return false;
@@ -139,21 +195,154 @@ public class Arena implements IArena {
         return publicGenerators;
     }
 
-    @Override
-    public boolean addPlayer(ServerPlayerEntity player) {
+    public enum JoinResult {
+        SUCCESS,
+        GAME_RUNNING,
+        ALREADY_JOINED
+    }
+
+    public JoinResult joinPlayer(ServerPlayerEntity player) {
         if (status != GameStatus.WAITING && status != GameStatus.STARTING) {
-            return false;
+            return JoinResult.GAME_RUNNING;
+        }
+        if (waitingPlayers.contains(player.getUuid()) || playerTeamMap.containsKey(player.getUuid())) {
+            return JoinResult.ALREADY_JOINED;
         }
         waitingPlayers.add(player.getUuid());
+        return JoinResult.SUCCESS;
+    }
+
+    @Override
+    public boolean addPlayer(ServerPlayerEntity player) {
+        // Deprecated/Legacy support wrapper
+        return joinPlayer(player) == JoinResult.SUCCESS;
+    }
+
+    private final java.util.Set<UUID> spectators = new java.util.HashSet<>();
+
+    public boolean joinSpectator(ServerPlayerEntity player) {
+        if (waitingPlayers.contains(player.getUuid()) || playerTeamMap.containsKey(player.getUuid())
+                || spectators.contains(player.getUuid())) {
+            return false;
+        }
+
+        // Save Backup
+        top.bearcabbage.twodimensional_bedwars.data.BedWarsPlayerData.saveBackup(player);
+        player.getInventory().clear();
+
+        spectators.add(player.getUuid());
+
+        // Teleport to Arena 1 Center
+        GameConfig.MapPoint center = config.arenaRestoreConfig.arena1Bounds.center;
+        player.teleport(gameWorld, center.x + 0.5, center.y + 10, center.z + 0.5,
+                java.util.EnumSet.noneOf(net.minecraft.network.packet.s2c.play.PositionFlag.class), 0, 0, false);
+        player.fallDistance = 0;
+        player.changeGameMode(GameMode.SPECTATOR);
+
         return true;
+    }
+
+    public void leavePlayer(ServerPlayerEntity player) {
+        leavePlayer(player, false);
+    }
+
+    public void leavePlayer(ServerPlayerEntity player, boolean skipRestore) {
+        UUID uuid = player.getUuid();
+
+        // 1. Check Team (Active Player)
+        ITeam team = playerTeamMap.get(uuid);
+        if (team instanceof BedWarsTeam bwTeam) {
+            BedWarsPlayer bwPlayer = bwTeam.getPlayer(uuid);
+            if (bwPlayer != null) {
+                if (!skipRestore) {
+                    // Try to restore. If fail, wipe inventory to prevent game item leak.
+                    if (!bwPlayer.restoreLobbyState(player)) {
+                        restoreToSpawn(player);
+                    }
+                }
+            }
+            bwTeam.removeMember(uuid);
+
+            // Check if team is empty and game is playing
+            if (status == GameStatus.PLAYING && bwTeam.getMembers().isEmpty()) {
+                boolean wasAlive = !bwTeam.isBedDestroyed();
+                // Destroy Beds
+                bwTeam.setBedDestroyed(1, true);
+                bwTeam.setBedDestroyed(2, true);
+
+                // Broadcast elimination if they were still in game (beds not destroyed)
+                if (wasAlive) {
+                    Text msg = Text.translatable("two-dimensional-bedwars.event.team_eliminated_quit",
+                            bwTeam.getName());
+                    player.getServer().getPlayerManager().getPlayerList().forEach(p -> p.sendMessage(msg, false));
+                }
+            }
+            cleanupPlayer(player);
+            playerTeamMap.remove(uuid);
+
+            // Check if ALL players have left (Empty Game)
+            if (status == GameStatus.PLAYING && getParticipantUUIDs().isEmpty()) {
+                broadcastToGame(player.getServer(), Text.translatable("two-dimensional-bedwars.event.game_end"));
+                stopGame();
+            }
+        }
+        // 2. Check Spectator
+        else if (spectators.contains(uuid)) {
+            if (!skipRestore) {
+                boolean restored = top.bearcabbage.twodimensional_bedwars.data.BedWarsPlayerData.restoreBackup(player);
+                if (!restored) {
+                    restoreToSpawn(player); // Fallback wipe
+                    player.sendMessage(Text.translatable("two-dimensional-bedwars.backup.restore_fail"), false);
+                }
+            }
+            cleanupPlayer(player);
+            spectators.remove(uuid);
+        }
+        // 3. Check Waiting
+        else if (waitingPlayers.contains(uuid)) {
+            // Just remove from list. No backup needed (didn't convert yet). No wipe needed.
+            waitingPlayers.remove(uuid);
+            // Optional: Teleport to spawn if they are in the arena world?
+            // If they joined, they might be in the arena world.
+            // If we don't TP them, they stay there.
+            // Current `joinPlayer` adds them to list but doesn't TP them until start.
+            // But if they are in the world, we should probably send them back to spawn?
+            // Assuming waiting players are in the lobby/overworld until start.
+        }
+
+        // 4. Preferred Teams cleanup
+        preferredTeams.remove(uuid);
+
+        // Broadcast Leave (Arena Only)
+        Text leaveMsg = Text.translatable("two-dimensional-bedwars.command.leave.broadcast", player.getDisplayName())
+                .formatted(Formatting.YELLOW);
+        broadcastToGame(player.getServer(), leaveMsg);
+    }
+
+    private void cleanupPlayer(ServerPlayerEntity player) {
+        player.changeGameMode(GameMode.SURVIVAL);
+        player.clearStatusEffects();
+        player.fallDistance = 0;
+
+        // Clear Scoreboard
+        player.networkHandler.sendPacket(new net.minecraft.network.packet.s2c.play.ScoreboardDisplayS2CPacket(
+                net.minecraft.scoreboard.ScoreboardDisplaySlot.SIDEBAR, null));
     }
 
     @Override
     public void removePlayer(ServerPlayerEntity player) {
-        playerTeamMap.remove(player.getUuid());
-        waitingPlayers.remove(player.getUuid());
-        preferredTeams.remove(player.getUuid());
-        player.clearStatusEffects(); // Clear all potion effects when leaving
+        leavePlayer(player);
+    }
+
+    private void restoreToSpawn(ServerPlayerEntity player) {
+        ServerWorld overworld = player.getServer().getOverworld();
+        BlockPos spawn = overworld.getSpawnPos();
+        player.teleport(overworld, spawn.getX(), spawn.getY(), spawn.getZ(),
+                java.util.EnumSet.noneOf(net.minecraft.network.packet.s2c.play.PositionFlag.class),
+                0, 0, false);
+        player.fallDistance = 0; // Reset Fall Distance
+        // Safety: Clear inventory to prevent item leaking if backup failed
+        player.getInventory().clear();
     }
 
     @Override
@@ -165,25 +354,40 @@ public class Arena implements IArena {
         teams.add(team);
     }
 
+    public java.util.Set<UUID> getParticipantUUIDs() {
+        return (status == GameStatus.PLAYING) ? playerTeamMap.keySet() : waitingPlayers;
+    }
+
     public void tick(ServerWorld world) {
+        // top.bearcabbage.twodimensional_bedwars.TwoDimensionalBedWars.LOGGER.info("Arena
+        // Tick: " + System.identityHashCode(this) + " Status: " + status);
         if (status == GameStatus.STARTING) {
             ticksUntilStart--;
 
-            // Notification
+            // Notification (Action Bar)
             if (ticksUntilStart % 20 == 0 && ticksUntilStart > 0) {
                 int sec = ticksUntilStart / 20;
-                world.getServer().getPlayerManager().getPlayerList()
-                        .forEach(p -> p.sendMessage(Text.literal("§eGame starting in §c" + sec + " §eseconds!"), true));
+                Text msg = Text.translatable("two-dimensional-bedwars.arena.starting_in",
+                        Text.literal(String.valueOf(sec)).formatted(Formatting.RED))
+                        .formatted(Formatting.YELLOW);
+
+                broadcastActionbarToGame(world.getServer(), msg);
             }
 
             if (ticksUntilStart <= 0) {
                 if (mapRestoreComplete) {
+                    // Broadcast Teleporting
+                    Text msg = Text.translatable("two-dimensional-bedwars.arena.map_restored")
+                            .formatted(Formatting.GREEN);
+                    broadcastToGame(world.getServer(), msg);
+
                     beginMatch(world);
                 } else {
                     if (Math.abs(ticksUntilStart) % 40 == 0) {
-                        // Notify waiting
-                        world.getServer().getPlayerManager().getPlayerList()
-                                .forEach(p -> p.sendMessage(Text.literal("§7Waiting for Map Restoration..."), true));
+                        // Notify waiting (Action Bar)
+                        Text msg = Text.translatable("two-dimensional-bedwars.arena.waiting_map")
+                                .formatted(Formatting.GRAY);
+                        broadcastActionbarToGame(world.getServer(), msg);
                     }
                 }
             }
@@ -266,7 +470,7 @@ public class Arena implements IArena {
                     // This implies players use portals to TRAVEL between their bases.
 
                     if (bwTeam.isBedDestroyed(targetArena)) {
-                        player.sendMessage(Text.literal("§cCannot teleport! Target Bed is Destroyed!"), true);
+                        player.sendMessage(Text.translatable("two-dimensional-bedwars.arena.teleport_fail_bed"), true);
                     } else {
                         // Teleport
                         BlockPos targetSpawn = bwTeam.getSpawnPoint(targetArena);
@@ -311,34 +515,59 @@ public class Arena implements IArena {
             this.mapRestoreComplete = true;
         });
 
-        // Assign potential players (so they see the title? No, addPlayer handles that)
-        for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
-            if (!waitingPlayers.contains(player.getUuid())) {
-                addPlayer(player);
-            }
-        }
+        triggerMapRestore(targetGameWorld, () -> {
+            System.out.println("Map Restore Complete callback received.");
+            this.mapRestoreComplete = true;
+        });
+
+        // Removed: Logic that auto-added all online players.
+        // Players must now explicitly join via /bedwars join or /bedwars team.
     }
 
     // Internal Method to Start Match
     private void beginMatch(ServerWorld world) {
-        // Clear Item Entities in Arena
+        // Clear ALL Entities in Arena (Mobs, Items, Projectiles, etc.) except Players
         if (this.gameWorld != null) {
             GameConfig.MapPoint min1 = config.arenaRestoreConfig.arena1Bounds.getMinPt();
             GameConfig.MapPoint max2 = config.arenaRestoreConfig.arena2Bounds.getMaxPt();
 
             this.gameWorld.getEntitiesByType(
-                    net.minecraft.util.TypeFilter.instanceOf(net.minecraft.entity.ItemEntity.class),
+                    net.minecraft.util.TypeFilter.instanceOf(net.minecraft.entity.Entity.class),
                     new net.minecraft.util.math.Box(
                             min1.x - 100, -64, min1.z - 100,
                             max2.x + 100, 320, max2.z + 100),
-                    e -> true).forEach(net.minecraft.entity.Entity::discard);
+                    e -> !(e instanceof net.minecraft.entity.player.PlayerEntity))
+                    .forEach(net.minecraft.entity.Entity::discard);
         }
 
-        initialize(this.gameWorld, this.requestedTeamCount); // assume 4 teams max or pass dynamically?
-        // Actually, teamCount was passed to startGame. We need to store it or assume
-        // max.
-        // Codebase seemed to pass it. I'll default to 4 for now or save it.
-        // The old startGame used teamCount.
+        initialize(this.gameWorld, this.requestedTeamCount);
+
+        // Validate Team Balance
+        boolean balanced = true;
+        for (ITeam team : teams) {
+            if (team instanceof BedWarsTeam bwTeam) {
+                if (bwTeam.getMembers().isEmpty()) {
+                    balanced = false;
+                    break;
+                }
+            }
+        }
+
+        if (!balanced) {
+            if (this.gameWorld != null) {
+                this.gameWorld.getServer().getPlayerManager().getPlayerList()
+                        .forEach(p -> p.sendMessage(
+                                Text.translatable("two-dimensional-bedwars.arena.start_fail_players"),
+                                false));
+            }
+
+            this.teams.clear();
+            this.playerTeamMap.clear();
+            this.preferredTeams.clear();
+            this.publicGenerators.clear();
+            this.status = GameStatus.WAITING;
+            return;
+        }
 
         status = GameStatus.PLAYING;
         // gameWorld.getGameRules().get(GameRules.DO_IMMEDIATE_RESPAWN).set(true,
@@ -414,6 +643,7 @@ public class Arena implements IArena {
     public void stopGame() {
         // Restore Players
         if (this.gameWorld != null) {
+            setChunksForced(this.gameWorld, false);
             MinecraftServer server = this.gameWorld.getServer();
             // Restore players via Teams
             for (ITeam team : teams) {
@@ -421,10 +651,16 @@ public class Arena implements IArena {
                     for (BedWarsPlayer bwPlayer : bwTeam.getPlayers()) {
                         ServerPlayerEntity player = server.getPlayerManager().getPlayer(bwPlayer.getUuid());
                         if (player != null) {
-                            bwPlayer.restoreLobbyState(player);
+                            if (!bwPlayer.restoreLobbyState(player)) {
+                                restoreToSpawn(player);
+                                player.sendMessage(Text.translatable("two-dimensional-bedwars.backup.restore_fail"),
+                                        false);
+                            }
                             // Reset Gamemode to SURVIVAL
                             player.changeGameMode(GameMode.SURVIVAL);
                             player.clearStatusEffects();
+                            player.fallDistance = 0;
+                            player.setVelocity(net.minecraft.util.math.Vec3d.ZERO);
                         }
                     }
                 }
@@ -466,8 +702,13 @@ public class Arena implements IArena {
         world.getGameRules().get(net.minecraft.world.GameRules.DO_TRADER_SPAWNING).set(false, world.getServer());
         world.getGameRules().get(net.minecraft.world.GameRules.DO_PATROL_SPAWNING).set(false, world.getServer());
         world.getGameRules().get(net.minecraft.world.GameRules.DO_WARDEN_SPAWNING).set(false, world.getServer());
+        world.getGameRules().get(net.minecraft.world.GameRules.DO_DAYLIGHT_CYCLE).set(false, world.getServer());
+        world.getGameRules().get(net.minecraft.world.GameRules.DO_WEATHER_CYCLE).set(false, world.getServer());
+        world.setTimeOfDay(6000);
+        world.setWeather(0, 0, false, false);
 
         this.gameWorld = world;
+        setChunksForced(world, true);
         teams.clear();
         playerTeamMap.clear();
 
@@ -513,13 +754,15 @@ public class Arena implements IArena {
 
         // Spawn Public Generators
         // Arena 1
-        spawnPublicGenerators(world, c1, config.arena1DiamondGenerators, config.diamondGenerator, Items.DIAMOND);
-        spawnPublicGenerators(world, c1, config.arena1EmeraldGenerators, config.emeraldGenerator, Items.EMERALD);
+        spawnPublicGenerators(world, c1, config.arena1DiamondGenerators, config.diamondGenerator, Items.DIAMOND,
+                "Diamond");
+        spawnPublicGenerators(world, c1, config.arena1EmeraldGenerators, config.emeraldGenerator, Items.EMERALD,
+                "Emerald");
 
         // Arena 2
-        spawnPublicGenerators(world, c2, config.arena2GoldGenerators, config.goldGenerator, Items.GOLD_INGOT);
+        spawnPublicGenerators(world, c2, config.arena2GoldGenerators, config.goldGenerator, Items.GOLD_INGOT, "Gold");
         spawnPublicGenerators(world, c2, config.arena2NetheriteGenerators, config.netheriteGenerator,
-                Items.NETHERITE_INGOT);
+                Items.NETHERITE_INGOT, "Netherite");
 
         // Pass 1: Preferences
         List<UUID> unassigned = new ArrayList<>();
@@ -543,21 +786,32 @@ public class Arena implements IArena {
             }
         }
 
-        // Pass 2: Round Robin for remaining
-        int teamIndex = 0;
+        // Pass 2: Balanced assignment for remaining
         for (UUID uuid : unassigned) {
-            ITeam team = teams.get(teamIndex % teams.size());
-            ((BedWarsTeam) team).addMember(uuid);
-            playerTeamMap.put(uuid, team);
-            teamIndex++;
+            // Find team with lowest member count
+            ITeam minTeam = teams.get(0);
+            int minSize = minTeam.getMembers().size();
+
+            for (int i = 1; i < teams.size(); i++) {
+                ITeam t = teams.get(i);
+                int size = t.getMembers().size();
+                if (size < minSize) {
+                    minTeam = t;
+                    minSize = size;
+                }
+            }
+
+            ((BedWarsTeam) minTeam).addMember(uuid);
+            playerTeamMap.put(uuid, minTeam);
         }
     }
 
     private void spawnPublicGenerators(ServerWorld world, GameConfig.MapPoint center, List<GameConfig.Offset> offsets,
-            GameConfig.GeneratorSetting setting, net.minecraft.item.Item item) {
+            GameConfig.GeneratorSetting setting, net.minecraft.item.Item item, String type) {
         for (GameConfig.Offset off : offsets) {
             BlockPos pos = new BlockPos(center.x + off.dx, center.y + off.dy, center.z + off.dz);
-            publicGenerators.add(new OreGenerator(pos, item, setting.amount, setting.delaySeconds, setting.limit));
+            publicGenerators
+                    .add(new OreGenerator(pos, item, setting.amount, setting.delaySeconds, setting.limit, type));
         }
     }
 
@@ -598,15 +852,45 @@ public class Arena implements IArena {
     private boolean processBedBreak(ServerPlayerEntity breaker, ITeam breakerTeam, BedWarsTeam bedOwnerTeam,
             int arenaId) {
         if (breakerTeam == bedOwnerTeam) {
-            breaker.sendMessage(Text.literal("§cYou cannot break your own bed!"));
+            breaker.sendMessage(Text.translatable("two-dimensional-bedwars.arena.break_own_bed"));
             return false;
         }
 
         if (!bedOwnerTeam.isBedDestroyed(arenaId)) {
             bedOwnerTeam.setBedDestroyed(arenaId, true);
-            breaker.getServer().getPlayerManager().getPlayerList()
-                    .forEach(p -> p.sendMessage(Text.literal("§l§c" + bedOwnerTeam.getName() + " Bed (Arena " + arenaId
-                            + ") was destroyed by " + breaker.getName().getString() + "!")));
+
+            Text teamName = Text.translatable("two-dimensional-bedwars.team." + bedOwnerTeam.getName().toLowerCase())
+                    .formatted(bedOwnerTeam.getColor() == Formatting.RED.getColorValue() ? Formatting.RED
+                            : bedOwnerTeam.getColor() == Formatting.BLUE.getColorValue() ? Formatting.BLUE
+                                    : bedOwnerTeam.getColor() == Formatting.GREEN.getColorValue() ? Formatting.GREEN
+                                            : bedOwnerTeam.getColor() == Formatting.YELLOW.getColorValue()
+                                                    ? Formatting.YELLOW
+                                                    : Formatting.WHITE);
+            // Wait, BedWarsTeam stores color as int. Formatting.RED.getColorValue() is int.
+            // But Text.formatted(Formatting) takes Formatting enum.
+            // I should use a helper to get Formatting from int or just switch case on name
+            // since I assume standard colors.
+
+            Formatting teamColor = Formatting.WHITE;
+            if (bedOwnerTeam.getName().equalsIgnoreCase("Red"))
+                teamColor = Formatting.RED;
+            else if (bedOwnerTeam.getName().equalsIgnoreCase("Blue"))
+                teamColor = Formatting.BLUE;
+            else if (bedOwnerTeam.getName().equalsIgnoreCase("Green"))
+                teamColor = Formatting.GREEN;
+            else if (bedOwnerTeam.getName().equalsIgnoreCase("Yellow"))
+                teamColor = Formatting.YELLOW;
+
+            // Re-construct teamName with correct formatting
+            teamName = Text.translatable("two-dimensional-bedwars.team." + bedOwnerTeam.getName().toLowerCase())
+                    .formatted(teamColor);
+
+            Text msg = Text.translatable("two-dimensional-bedwars.event.bed_destroy",
+                    teamName,
+                    breaker.getDisplayName())
+                    .formatted(Formatting.WHITE);
+
+            broadcastToGame(breaker.getServer(), msg);
             return true;
         }
         return true;
@@ -648,21 +932,28 @@ public class Arena implements IArena {
             if (bwPlayer != null) {
                 bwPlayer.addDeath(); // Increment Death
                 bwPlayer.handleDeath(player, this.gameWorld);
+
+                // Broadcast Death Message (Arena Only)
+                Text deathMsg = source.getDeathMessage(player);
+                if (deathMsg != null) {
+                    broadcastToGame(player.getServer(), deathMsg);
+                }
             }
 
             if (bwTeam.isBedDestroyed(targetArena)) {
                 // Elimination
-                player.sendMessage(Text.literal("You have been eliminated! (Target Bed Destroyed)"));
+                player.sendMessage(Text.translatable("two-dimensional-bedwars.arena.eliminated"));
                 player.changeGameMode(GameMode.SPECTATOR);
                 if (bwPlayer != null)
                     bwPlayer.setState(0); // Spectator
                 // playerStateMap.put(player.getUuid(), 0); // Removed
             } else {
-                // Respawn
                 player.changeGameMode(GameMode.SPECTATOR);
-                player.sendMessage(Text.literal("You will respawn in Arena " + targetArena + " in 5 seconds!"));
+                Text arenaName = targetArena == 1 ? Text.translatable("two-dimensional-bedwars.arena.overworld")
+                        : Text.translatable("two-dimensional-bedwars.arena.nether");
+                player.sendMessage(Text.translatable("two-dimensional-bedwars.arena.respawn_in", arenaName));
                 if (gamePlayingTask != null) {
-                    respawnTargets.put(player.getUuid(), targetArena);
+                    respawnTargets.put(player.getUuid(), targetArena); // Keep integer for logic
                     gamePlayingTask.addRespawn(player.getUuid(), 5);
                 }
             }
@@ -702,7 +993,8 @@ public class Arena implements IArena {
     private void giveShopItem(ServerPlayerEntity player) {
         // Simple Paper Item with Name
         net.minecraft.item.ItemStack shopItem = new net.minecraft.item.ItemStack(Items.PAPER);
-        shopItem.set(net.minecraft.component.DataComponentTypes.ITEM_NAME, Text.literal("§aShop (Right Click)"));
+        shopItem.set(net.minecraft.component.DataComponentTypes.ITEM_NAME,
+                Text.translatable("two-dimensional-bedwars.item.shop"));
         player.getInventory().offerOrDrop(shopItem);
     }
 
@@ -713,13 +1005,21 @@ public class Arena implements IArena {
             player.openHandledScreen(new net.minecraft.screen.SimpleNamedScreenHandlerFactory(
                     (syncId, inv, p) -> net.minecraft.screen.GenericContainerScreenHandler.createGeneric9x3(syncId, inv,
                             chest),
-                    Text.literal("Team Ender Chest")));
+                    Text.translatable("two-dimensional-bedwars.container.team_chest")));
             return true;
         }
         return false;
     }
 
+    public ServerWorld getGameWorld() {
+        return this.gameWorld;
+    }
+
     public GamePlayingTask getGamePlayingTask() {
         return gamePlayingTask;
+    }
+
+    public boolean isSuddenDeathActive() {
+        return gamePlayingTask != null && gamePlayingTask.isSuddenDeathActive();
     }
 }

@@ -74,13 +74,8 @@ public class CustomItemHandler {
         if (nbtComponent != null) {
             net.minecraft.nbt.NbtCompound nbt = nbtComponent.copyNbt();
             if (nbt.contains("bedwars:item_type")) {
-                // Try to handle Optional<String> - compiler says it returns Optional
-                Object val = nbt.getString("bedwars:item_type");
-                if (val instanceof java.util.Optional opt) {
-                    return (String) opt.orElse(null);
-                }
-                // If it was already string
-                return (String) val;
+                String type = nbt.getString("bedwars:item_type").orElse("");
+                return type;
             }
         }
         return null;
@@ -99,8 +94,10 @@ public class CustomItemHandler {
     }
 
     private static ActionResult handleBridgeEgg(ServerPlayerEntity player, World world, ItemStack stack) {
-        top.bearcabbage.twodimensional_bedwars.entity.BridgeEggEntity egg = new top.bearcabbage.twodimensional_bedwars.entity.BridgeEggEntity(
-                world, player);
+        net.minecraft.entity.projectile.thrown.EggEntity egg = new net.minecraft.entity.projectile.thrown.EggEntity(
+                net.minecraft.entity.EntityType.EGG, world);
+        egg.setOwner(player);
+        egg.setPosition(player.getX(), player.getEyeY() - 0.1, player.getZ());
         egg.setItem(stack);
         egg.setVelocity(player, player.getPitch(), player.getYaw(), 0.0f, 1.5f, 1.0f);
         world.spawnEntity(egg);

@@ -4,7 +4,8 @@
 	"compatibilityLevel": "JAVA_21",
 	"mixins": [
 		"ExampleMixin",
-		"ServerWorldMixin"
+		"ServerWorldMixin",
+		"EggEntityMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

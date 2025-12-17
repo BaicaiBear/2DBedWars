@@ -46,7 +46,7 @@ public class ScoreboardManager {
         this.objective = scoreboard.addObjective(
                 OBJECTIVE_NAME,
                 ScoreboardCriterion.DUMMY,
-                Text.literal("\u00A7e\u00A7l2D BEDWARS"),
+                Text.translatable("two-dimensional-bedwars.scoreboard.title"),
                 ScoreboardCriterion.RenderType.INTEGER,
                 true,
                 null);
@@ -128,30 +128,31 @@ public class ScoreboardManager {
         // Timer (at timerScore)
         top.bearcabbage.twodimensional_bedwars.mechanic.GamePlayingTask task = arena.getGamePlayingTask();
         if (task != null) {
-            String eventName = "Diamond II";
-            int time = task.getBedsDestroyCountdown();
+            top.bearcabbage.twodimensional_bedwars.mechanic.GamePlayingTask.GameEvent nextEvent = task.getNextEvent();
+            Text eventName = Text.translatable("two-dimensional-bedwars.event_name.waiting");
+            int time = 0;
 
-            if (time < 0) {
-                time = task.getDragonSpawnCountdown();
-                eventName = "Dragon Spawn";
-                if (time < 0) {
-                    time = task.getGameEndCountdown();
-                    eventName = "Game End";
-                }
+            if (nextEvent != null) {
+                eventName = nextEvent.name;
+                time = nextEvent.timeSeconds - task.getElapsedTime();
+            } else {
+                eventName = Text.translatable("two-dimensional-bedwars.event_name.ended");
+                time = 0;
             }
 
-            String timeStr = (time >= 0) ? String.format("%02d:%02d", time / 60, time % 60) : "--:--";
-            updateLine(timerScore, "\u00A7e" + eventName + ": \u00A7a" + timeStr);
+            String timeStr = String.format("%02d:%02d", time / 60, time % 60);
+            updateLine(timerScore,
+                    Text.empty().append(Text.literal("§e")).append(eventName).append(Text.literal(": §a" + timeStr)));
         } else {
-            updateLine(timerScore, "Waiting...");
+            updateLine(timerScore, Text.translatable("two-dimensional-bedwars.scoreboard.waiting_ellipsis"));
         }
 
         // Top Spacer
-        updateLine(topSpacer, "");
+        updateLine(topSpacer, Text.empty());
 
         // Teams (at 3+teamCount down to 4)
         int currentScore = 3 + teamCount;
-        int teamIndex = 1;
+        // int teamIndex = 1; // Unused
 
         for (top.bearcabbage.twodimensional_bedwars.component.BedWarsTeam bwTeam : activeTeams) {
             int kills = 0;
@@ -165,7 +166,9 @@ public class ScoreboardManager {
                     // Determine Arena by checking player position
                     net.minecraft.server.network.ServerPlayerEntity spe = server.getPlayerManager()
                             .getPlayer(p.getUuid());
-                    if (spe != null) {
+                    // Only count if physically present and NOT a spectator (respawning players are
+                    // spectators)
+                    if (spe != null && !spe.isSpectator()) {
                         if (spe.getX() > 200) {
                             p2++;
                         } else {
@@ -179,42 +182,61 @@ public class ScoreboardManager {
             String bed1 = bwTeam.isBedDestroyed(1) ? "\u00A7c\u2718" : "\u00A7a\u2714"; // X or Check
             String bed2 = bwTeam.isBedDestroyed(2) ? "\u00A7c\u2718" : "\u00A7a\u2714";
 
-            // Determine Color
-            String colorCode = "\u00A7f";
-            if (bwTeam.getName().equalsIgnoreCase("Red"))
-                colorCode = "\u00A7c";
-            else if (bwTeam.getName().equalsIgnoreCase("Blue"))
-                colorCode = "\u00A79";
-            else if (bwTeam.getName().equalsIgnoreCase("Green"))
-                colorCode = "\u00A7a";
-            else if (bwTeam.getName().equalsIgnoreCase("Yellow"))
-                colorCode = "\u00A7e";
+            // Determine Color and Localized Name
+            net.minecraft.util.Formatting color = net.minecraft.util.Formatting.WHITE;
+            String teamKey = "two-dimensional-bedwars.team.white";
+
+            if (bwTeam.getName().equalsIgnoreCase("Red")) {
+                color = net.minecraft.util.Formatting.RED;
+                teamKey = "two-dimensional-bedwars.team.red";
+            } else if (bwTeam.getName().equalsIgnoreCase("Blue")) {
+                color = net.minecraft.util.Formatting.BLUE;
+                teamKey = "two-dimensional-bedwars.team.blue";
+            } else if (bwTeam.getName().equalsIgnoreCase("Green")) {
+                color = net.minecraft.util.Formatting.GREEN;
+                teamKey = "two-dimensional-bedwars.team.green";
+            } else if (bwTeam.getName().equalsIgnoreCase("Yellow")) {
+                color = net.minecraft.util.Formatting.YELLOW;
+                teamKey = "two-dimensional-bedwars.team.yellow";
+            }
 
             // Alias: TEAM 1, TEAM 2...
-            String alias = "TEAM " + teamIndex++;
+            // Format: [Color] [TeamName]
+            Text alias = Text.translatable(teamKey).formatted(color);
 
             // Format: TEAM1 [Beds] P:P1/P2 K/D:K/D
-            String line = String.format("%s%-6s \u00A7f[\u00A7l%s%s\u00A7r\u00A7f] \u00A77P:%d/%d \u00A77K/D:%d/%d",
-                    colorCode, alias, bed1, bed2, p1, p2, kills, deaths);
+            // String line = String.format("%s%-6s \u00A7f[\u00A7l%s%s\u00A7r\u00A7f]
+            // \u00A77P:%d/%d \u00A77K/D:%d/%d", colorCode, alias, bed1, bed2, p1, p2,
+            // kills, deaths);
+            Text line = Text.empty()
+                    .append(alias)
+                    .append(" ")
+                    .append(Text.literal("\u00A7f[\u00A7l"))
+                    .append(Text.literal(bed1))
+                    .append(Text.literal(bed2))
+                    .append(Text.literal("\u00A7r\u00A7f] \u00A77P:"))
+                    .append(Text.literal(p1 + "/" + p2))
+                    .append(Text.literal(" \u00A77K/D:"))
+                    .append(Text.literal(kills + "/" + deaths));
 
             updateLine(currentScore, line);
             currentScore--;
         }
 
         // Bottom Spacers
-        updateLine(3, "");
-        updateLine(2, "");
+        updateLine(3, Text.empty());
+        updateLine(2, Text.empty());
         // Footer
-        updateLine(1, "\u00A7eMirrorTree");
+        updateLine(1, Text.translatable("two-dimensional-bedwars.scoreboard.footer"));
     }
 
-    private void updateLine(int score, String text) {
+    private void updateLine(int score, Text text) {
         ServerScoreboard scoreboard = server.getScoreboard();
         String teamName = lineTeams.get(score);
         if (teamName != null) {
             Team team = scoreboard.getTeam(teamName);
             if (team != null) {
-                team.setPrefix(Text.literal(text));
+                team.setPrefix(text);
                 // Suffix not strictly needed if text fits in prefix (1.20.4+ supports long
                 // prefixes)
             }

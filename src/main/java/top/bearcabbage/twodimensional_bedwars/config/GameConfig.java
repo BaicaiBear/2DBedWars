@@ -35,36 +35,44 @@ public class GameConfig {
     private static List<ForgeLevel> defaultForgeLevels() {
         List<ForgeLevel> levels = new ArrayList<>();
 
-        // Level 0 (Start)
+        // Level 0 (Initial)
+        // Iron: 3 items / 2s
         List<ForgeResource> l0 = new ArrayList<>();
-        l0.add(new ForgeResource("minecraft:iron_ingot", 1.0, 1, 48));
-        l0.add(new ForgeResource("minecraft:gold_ingot", 4.0, 1, 12));
+        l0.add(new ForgeResource("minecraft:iron_ingot", 2.0, 3, 48));
         levels.add(new ForgeLevel(0, l0));
 
-        // Level 1 (+50% Resources)
+        // Level 1
+        // Iron: 5 items / 2s
         List<ForgeResource> l1 = new ArrayList<>();
-        l1.add(new ForgeResource("minecraft:iron_ingot", 0.7, 1, 64));
-        l1.add(new ForgeResource("minecraft:gold_ingot", 2.7, 1, 16));
+        l1.add(new ForgeResource("minecraft:iron_ingot", 2.0, 5, 64));
         levels.add(new ForgeLevel(1, l1));
 
-        // Level 2 (+100% Resources)
+        // Level 2
+        // Iron: 5 items / 2s
+        // Quartz: 1 item / 5s
         List<ForgeResource> l2 = new ArrayList<>();
-        l2.add(new ForgeResource("minecraft:iron_ingot", 0.5, 1, 64));
-        l2.add(new ForgeResource("minecraft:gold_ingot", 2.0, 1, 24));
+        l2.add(new ForgeResource("minecraft:iron_ingot", 2.0, 5, 64));
+        l2.add(new ForgeResource("minecraft:quartz", 5.0, 1, 12));
         levels.add(new ForgeLevel(2, l2));
 
-        // Level 3 (Emeralds)
+        // Level 3
+        // Iron: 5 items / 2s
+        // Quartz: 2 items / 5s
+        // Emerald: 1 item / 20s
         List<ForgeResource> l3 = new ArrayList<>();
-        l3.add(new ForgeResource("minecraft:iron_ingot", 0.35, 1, 64));
-        l3.add(new ForgeResource("minecraft:gold_ingot", 1.3, 1, 32));
-        l3.add(new ForgeResource("minecraft:emerald", 10.0, 1, 4));
+        l3.add(new ForgeResource("minecraft:iron_ingot", 2.0, 5, 64));
+        l3.add(new ForgeResource("minecraft:quartz", 5.0, 2, 24));
+        l3.add(new ForgeResource("minecraft:emerald", 20.0, 1, 4));
         levels.add(new ForgeLevel(3, l3));
 
         // Level 4 (Supreme)
+        // Iron: 4 items / 1s
+        // Quartz: 4 items / 5s
+        // Emerald: 1 item / 20s
         List<ForgeResource> l4 = new ArrayList<>();
-        l4.add(new ForgeResource("minecraft:iron_ingot", 0.25, 1, 64));
-        l4.add(new ForgeResource("minecraft:gold_ingot", 1.0, 1, 48));
-        l4.add(new ForgeResource("minecraft:emerald", 8.0, 1, 6));
+        l4.add(new ForgeResource("minecraft:iron_ingot", 1.0, 4, 64));
+        l4.add(new ForgeResource("minecraft:quartz", 5.0, 4, 48));
+        l4.add(new ForgeResource("minecraft:emerald", 20.0, 1, 6));
         levels.add(new ForgeLevel(4, l4));
 
         return levels;
@@ -173,11 +181,19 @@ public class GameConfig {
     }
 
     public static class GeneratorSetting {
+        public String type; // Optional, used for public levels
         public int amount;
         public double delaySeconds;
         public int limit;
 
         public GeneratorSetting(int amount, double delaySeconds, int limit) {
+            this.amount = amount;
+            this.delaySeconds = delaySeconds;
+            this.limit = limit;
+        }
+
+        public GeneratorSetting(String type, int amount, double delaySeconds, int limit) {
+            this.type = type;
             this.amount = amount;
             this.delaySeconds = delaySeconds;
             this.limit = limit;
@@ -243,104 +259,113 @@ public class GameConfig {
     private static List<ShopEntry> defaultShop() {
         List<ShopEntry> list = new ArrayList<>();
 
-        list.add(new ShopEntry(0, "minecraft:white_wool", 16, "minecraft:iron_ingot", 8, "Wool"));
-        list.add(new ShopEntry(1, "minecraft:terracotta", 16, "minecraft:iron_ingot", 12, "Hardened Clay"));
-        list.add(new ShopEntry(2, "minecraft:ladder", 16, "minecraft:iron_ingot", 4, "Ladder"));
-        list.add(new ShopEntry(3, "minecraft:oak_planks", 16, "minecraft:iron_ingot", 16, "Wood Planks"));
+        list.add(new ShopEntry(0, "minecraft:white_wool", 16, "minecraft:iron_ingot", 8, null));
+        list.add(new ShopEntry(1, "minecraft:terracotta", 16, "minecraft:iron_ingot", 12, null));
+        list.add(new ShopEntry(2, "minecraft:ladder", 16, "minecraft:iron_ingot", 4, null));
+        list.add(new ShopEntry(3, "minecraft:oak_planks", 16, "minecraft:iron_ingot", 16, null));
 
-        list.add(new ShopEntry(5, "minecraft:glass", 8, "minecraft:quartz", 12, "Blast-proof Glass",
-                "BLAST_PROOF_GLASS"));
-        list.add(new ShopEntry(6, "minecraft:end_stone", 12, "minecraft:quartz", 24, "End Stone"));
-        list.add(new ShopEntry(7, "minecraft:obsidian", 4, "minecraft:netherite_ingot", 4, "Obsidian"));
-        list.add(new ShopEntry(8, "minecraft:golden_apple", 1, "minecraft:gold_ingot", 2, "Golden Apple",
-                "GOLDEN_APPLE"));
+        list.add(new ShopEntry(5, "minecraft:glass", 8, "minecraft:quartz", 12,
+                "two-dimensional-bedwars.shop.item.blast_proof_glass", "BLAST_PROOF_GLASS"));
+        list.add(new ShopEntry(6, "minecraft:end_stone", 12, "minecraft:quartz", 24, null));
+        list.add(new ShopEntry(7, "minecraft:obsidian", 4, "minecraft:netherite_ingot", 4, null));
+        list.add(new ShopEntry(8, "minecraft:golden_apple", 1, "minecraft:gold_ingot", 2,
+                "two-dimensional-bedwars.shop.item.golden_apple", "GOLDEN_APPLE"));
 
-        list.add(new ShopEntry(9, "minecraft:water_bucket", 1, "minecraft:iron_ingot", 12, "Water Bucket",
-                "WATER_BUCKET"));
-        list.add(new ShopEntry(10, "minecraft:sponge", 4, "minecraft:iron_ingot", 48, "Sponge", "SPONGE"));
-        list.add(new ShopEntry(11, "minecraft:fire_charge", 1, "minecraft:iron_ingot", 32, "Fireball", "FIREBALL"));
-        list.add(new ShopEntry(12, "minecraft:egg", 1, "minecraft:emerald", 1, "Bridge Egg", "BRIDGE_EGG"));
+        list.add(new ShopEntry(9, "minecraft:water_bucket", 1, "minecraft:iron_ingot", 12,
+                "two-dimensional-bedwars.shop.item.water_bucket", "WATER_BUCKET"));
+        list.add(new ShopEntry(10, "minecraft:sponge", 4, "minecraft:iron_ingot", 48,
+                "two-dimensional-bedwars.shop.item.sponge", "SPONGE"));
+        list.add(new ShopEntry(11, "minecraft:fire_charge", 1, "minecraft:iron_ingot", 32,
+                "two-dimensional-bedwars.shop.item.fireball", "FIREBALL"));
+        list.add(new ShopEntry(12, "minecraft:egg", 1, "minecraft:emerald", 1,
+                "two-dimensional-bedwars.shop.item.bridge_egg", "BRIDGE_EGG"));
 
-        list.add(new ShopEntry(14, "minecraft:stone_sword", 1, "minecraft:quartz", 10, "Stone Sword"));
-        list.add(new ShopEntry(15, "minecraft:iron_sword", 1, "minecraft:quartz", 64, "Iron Sword"));
-        list.add(new ShopEntry(16, "minecraft:diamond_sword", 1, "minecraft:netherite_ingot", 6, "Diamond Sword"));
-        list.add(new ShopEntry(17, "minecraft:stick", 1, "minecraft:gold_ingot", 4, "Knockback Stick",
-                "KNOCKBACK_STICK"));
+        list.add(new ShopEntry(14, "minecraft:stone_sword", 1, "minecraft:quartz", 10,
+                "two-dimensional-bedwars.shop.item.stone_sword", "TOOL_SWORD", 2, "TOOL_SWORD"));
+        list.add(new ShopEntry(14, "minecraft:iron_sword", 1, "minecraft:quartz", 64,
+                "two-dimensional-bedwars.shop.item.iron_sword", "TOOL_SWORD", 3, "TOOL_SWORD"));
+        list.add(new ShopEntry(14, "minecraft:diamond_sword", 1, "minecraft:netherite_ingot", 6,
+                "two-dimensional-bedwars.shop.item.diamond_sword", "TOOL_SWORD", 4, "TOOL_SWORD"));
+        list.add(new ShopEntry(15, "minecraft:stick", 1, "minecraft:gold_ingot", 4,
+                "two-dimensional-bedwars.shop.item.knockback_stick", "KNOCKBACK_STICK"));
+        list.add(new ShopEntry(16, "minecraft:shears", 1, "minecraft:quartz", 20, null, "SHEARS"));
+        list.add(new ShopEntry(17, "minecraft:cherry_leaves", 16, "minecraft:quartz", 4, null));
 
-        list.add(new ShopEntry(18, "minecraft:wooden_pickaxe", 1, "minecraft:iron_ingot", 10, "Wood Pickaxe (Eff I)",
-                "TOOL_PICKAXE", 1, "TOOL_PICKAXE"));
-        list.add(new ShopEntry(18, "minecraft:stone_pickaxe", 1, "minecraft:iron_ingot", 10, "Stone Pickaxe (Eff I)",
-                "TOOL_PICKAXE", 2, "TOOL_PICKAXE"));
-        list.add(new ShopEntry(18, "minecraft:iron_pickaxe", 1, "minecraft:diamond", 2, "Iron Pickaxe (Eff II)",
-                "TOOL_PICKAXE", 3, "TOOL_PICKAXE"));
-        list.add(new ShopEntry(18, "minecraft:diamond_pickaxe", 1, "minecraft:emerald", 6, "Diamond Pickaxe (Eff III)",
-                "TOOL_PICKAXE", 4, "TOOL_PICKAXE"));
+        list.add(new ShopEntry(18, "minecraft:wooden_pickaxe", 1, "minecraft:iron_ingot", 10,
+                "two-dimensional-bedwars.shop.item.wood_pickaxe_1", "TOOL_PICKAXE", 1, "TOOL_PICKAXE"));
+        list.add(new ShopEntry(18, "minecraft:stone_pickaxe", 1, "minecraft:iron_ingot", 10,
+                "two-dimensional-bedwars.shop.item.stone_pickaxe_2", "TOOL_PICKAXE", 2, "TOOL_PICKAXE"));
+        list.add(new ShopEntry(18, "minecraft:iron_pickaxe", 1, "minecraft:diamond", 2,
+                "two-dimensional-bedwars.shop.item.iron_pickaxe_3", "TOOL_PICKAXE", 3, "TOOL_PICKAXE"));
+        list.add(new ShopEntry(18, "minecraft:diamond_pickaxe", 1, "minecraft:emerald", 6,
+                "two-dimensional-bedwars.shop.item.diamond_pickaxe_4", "TOOL_PICKAXE", 4, "TOOL_PICKAXE"));
 
-        list.add(new ShopEntry(19, "minecraft:wooden_axe", 1, "minecraft:iron_ingot", 10, "Wood Axe (Eff I)",
-                "TOOL_AXE", 1, "TOOL_AXE"));
-        list.add(new ShopEntry(19, "minecraft:stone_axe", 1, "minecraft:iron_ingot", 10, "Stone Axe (Eff II)",
-                "TOOL_AXE", 2, "TOOL_AXE"));
-        list.add(new ShopEntry(19, "minecraft:iron_axe", 1, "minecraft:diamond", 2, "Iron Axe (Eff II)", "TOOL_AXE", 3,
-                "TOOL_AXE"));
-        list.add(new ShopEntry(19, "minecraft:diamond_axe", 1, "minecraft:emerald", 6, "Diamond Axe (Eff III)",
-                "TOOL_AXE", 4, "TOOL_AXE"));
+        list.add(new ShopEntry(19, "minecraft:wooden_axe", 1, "minecraft:iron_ingot", 10,
+                "two-dimensional-bedwars.shop.item.wood_axe_1", "TOOL_AXE", 1, "TOOL_AXE"));
+        list.add(new ShopEntry(19, "minecraft:stone_axe", 1, "minecraft:iron_ingot", 10,
+                "two-dimensional-bedwars.shop.item.stone_axe_2", "TOOL_AXE", 2, "TOOL_AXE"));
+        list.add(new ShopEntry(19, "minecraft:iron_axe", 1, "minecraft:diamond", 2,
+                "two-dimensional-bedwars.shop.item.iron_axe_3", "TOOL_AXE", 3, "TOOL_AXE"));
+        list.add(new ShopEntry(19, "minecraft:diamond_axe", 1, "minecraft:emerald", 6,
+                "two-dimensional-bedwars.shop.item.diamond_axe_4", "TOOL_AXE", 4, "TOOL_AXE"));
 
-        list.add(
-                new ShopEntry(20, "minecraft:potion", 1, "minecraft:emerald", 1, "Speed Potion (60s)", "POTION_SPEED"));
-        list.add(new ShopEntry(21, "minecraft:potion", 1, "minecraft:emerald", 1, "Jump Boost Potion (60s)",
-                "POTION_JUMP"));
+        list.add(new ShopEntry(20, "minecraft:potion", 1, "minecraft:emerald", 1,
+                "two-dimensional-bedwars.shop.potion.speed", "POTION_SPEED"));
+        list.add(new ShopEntry(21, "minecraft:potion", 1, "minecraft:emerald", 1,
+                "two-dimensional-bedwars.shop.potion.jump", "POTION_JUMP"));
 
-        list.add(new ShopEntry(23, "minecraft:bow", 1, "minecraft:quartz", 32, "Bow", "BOW_NORMAL"));
-        list.add(new ShopEntry(24, "minecraft:bow", 1, "minecraft:gold_ingot", 3, "Bow (Power I)", "BOW_POWER_1"));
-        list.add(new ShopEntry(25, "minecraft:bow", 1, "minecraft:gold_ingot", 6, "Bow (Power I, Punch I)",
-                "BOW_POWER_1_PUNCH_1"));
-        list.add(new ShopEntry(26, "minecraft:arrow", 6, "minecraft:quartz", 6, "Arrows"));
+        list.add(new ShopEntry(23, "minecraft:bow", 1, "minecraft:quartz", 32, null, "BOW_NORMAL"));
+        list.add(new ShopEntry(24, "minecraft:bow", 1, "minecraft:gold_ingot", 3, null, "BOW_POWER_1"));
+        list.add(new ShopEntry(25, "minecraft:bow", 1, "minecraft:gold_ingot", 6, null, "BOW_POWER_1_PUNCH_1"));
+        list.add(new ShopEntry(26, "minecraft:arrow", 6, "minecraft:quartz", 6, null));
 
-        list.add(new ShopEntry(27, "minecraft:chainmail_boots", 1, "minecraft:iron_ingot", 32, "Chainmail Armor",
-                "ARMOR_CHAINMAIL"));
-        list.add(new ShopEntry(28, "minecraft:iron_boots", 1, "minecraft:diamond", 4, "Iron Armor", "ARMOR_IRON"));
-        list.add(new ShopEntry(29, "minecraft:diamond_boots", 1, "minecraft:emerald", 10, "Diamond Armor",
-                "ARMOR_DIAMOND"));
+        list.add(new ShopEntry(27, "minecraft:chainmail_boots", 1, "minecraft:iron_ingot", 32,
+                "two-dimensional-bedwars.shop.upgrade.protection", "ARMOR_CHAINMAIL"));
+        list.add(new ShopEntry(28, "minecraft:iron_boots", 1, "minecraft:diamond", 4,
+                "two-dimensional-bedwars.shop.upgrade.protection", "ARMOR_IRON"));
+        list.add(new ShopEntry(29, "minecraft:diamond_boots", 1, "minecraft:emerald", 10,
+                "two-dimensional-bedwars.shop.upgrade.protection", "ARMOR_DIAMOND"));
 
-        list.add(new ShopEntry(32, "minecraft:potion", 1, "minecraft:netherite_ingot", 2, "Invisibility Potion (30s)",
-                "POTION_INVISIBILITY"));
-        list.add(new ShopEntry(33, "minecraft:tnt", 1, "minecraft:gold_ingot", 1, "Triggered TNT", "TNT_TRIGGERED"));
-        list.add(new ShopEntry(34, "minecraft:ender_pearl", 1, "minecraft:netherite_ingot", 2, "Ender Pearl",
+        list.add(new ShopEntry(32, "minecraft:potion", 1, "minecraft:netherite_ingot", 2,
+                "two-dimensional-bedwars.shop.potion.invis", "POTION_INVISIBILITY"));
+        list.add(new ShopEntry(33, "minecraft:tnt", 1, "minecraft:gold_ingot", 1,
+                "two-dimensional-bedwars.shop.item.tnt", "TNT_TRIGGERED"));
+        list.add(new ShopEntry(34, "minecraft:ender_pearl", 1, "minecraft:netherite_ingot", 2, null,
                 "ENDER_PEARL"));
 
-        list.add(new ShopEntry(47, "minecraft:furnace", 1, "minecraft:diamond", 4, "Forge Upgrade I", "UPGRADE_FORGE",
-                1));
-        list.add(new ShopEntry(47, "minecraft:blast_furnace", 1, "minecraft:diamond", 8, "Forge Upgrade II",
-                "UPGRADE_FORGE", 2));
-        list.add(new ShopEntry(47, "minecraft:ender_chest", 1, "minecraft:netherite_ingot", 4, "Forge Upgrade III",
-                "UPGRADE_FORGE", 3));
-        list.add(new ShopEntry(47, "minecraft:emerald_block", 1, "minecraft:gold_ingot", 16, "Forge Upgrade IV",
-                "UPGRADE_FORGE", 4));
+        list.add(new ShopEntry(47, "minecraft:furnace", 1, "minecraft:diamond", 4,
+                "two-dimensional-bedwars.shop.upgrade.forge", "UPGRADE_FORGE", 1));
+        list.add(new ShopEntry(47, "minecraft:blast_furnace", 1, "minecraft:diamond", 8,
+                "two-dimensional-bedwars.shop.upgrade.forge", "UPGRADE_FORGE", 2));
+        list.add(new ShopEntry(47, "minecraft:ender_chest", 1, "minecraft:netherite_ingot", 4,
+                "two-dimensional-bedwars.shop.upgrade.forge", "UPGRADE_FORGE", 3));
+        list.add(new ShopEntry(47, "minecraft:emerald_block", 1, "minecraft:gold_ingot", 16,
+                "two-dimensional-bedwars.shop.upgrade.forge", "UPGRADE_FORGE", 4));
 
-        list.add(new ShopEntry(48, "minecraft:iron_chestplate", 1, "minecraft:diamond", 5, "Reinforced Armor I",
-                "UPGRADE_PROTECTION", 1));
-        list.add(new ShopEntry(48, "minecraft:diamond_chestplate", 1, "minecraft:diamond", 10, "Reinforced Armor II",
-                "UPGRADE_PROTECTION", 2));
-        list.add(new ShopEntry(48, "minecraft:netherite_chestplate", 1, "minecraft:diamond", 20, "Reinforced Armor III",
-                "UPGRADE_PROTECTION", 3));
-        list.add(new ShopEntry(48, "minecraft:netherite_chestplate", 1, "minecraft:diamond", 30, "Reinforced Armor IV",
-                "UPGRADE_PROTECTION", 4));
+        list.add(new ShopEntry(48, "minecraft:iron_chestplate", 1, "minecraft:diamond", 5,
+                "two-dimensional-bedwars.shop.upgrade.protection", "UPGRADE_PROTECTION", 1));
+        list.add(new ShopEntry(48, "minecraft:diamond_chestplate", 1, "minecraft:diamond", 10,
+                "two-dimensional-bedwars.shop.upgrade.protection", "UPGRADE_PROTECTION", 2));
+        list.add(new ShopEntry(48, "minecraft:netherite_chestplate", 1, "minecraft:diamond", 20,
+                "two-dimensional-bedwars.shop.upgrade.protection", "UPGRADE_PROTECTION", 3));
+        list.add(new ShopEntry(48, "minecraft:netherite_chestplate", 1, "minecraft:diamond", 30,
+                "two-dimensional-bedwars.shop.upgrade.protection", "UPGRADE_PROTECTION", 4));
 
-        list.add(new ShopEntry(50, "minecraft:golden_pickaxe", 1, "minecraft:gold_ingot", 4, "Maniac Miner I",
-                "UPGRADE_HASTE", 1));
-        list.add(new ShopEntry(50, "minecraft:diamond_pickaxe", 1, "minecraft:gold_ingot", 6, "Maniac Miner II",
-                "UPGRADE_HASTE", 2));
+        list.add(new ShopEntry(50, "minecraft:golden_pickaxe", 1, "minecraft:gold_ingot", 4,
+                "two-dimensional-bedwars.shop.upgrade.haste", "UPGRADE_HASTE", 1));
+        list.add(new ShopEntry(50, "minecraft:diamond_pickaxe", 1, "minecraft:gold_ingot", 6,
+                "two-dimensional-bedwars.shop.upgrade.haste", "UPGRADE_HASTE", 2));
 
-        list.add(new ShopEntry(51, "minecraft:iron_sword", 1, "minecraft:gold_ingot", 8, "Sharpened Swords I",
-                "UPGRADE_SHARPNESS", 1));
-        list.add(new ShopEntry(51, "minecraft:iron_sword", 1, "minecraft:gold_ingot", 8, "Sharpened Swords II",
-                "UPGRADE_SHARPNESS", 2));
-        list.add(new ShopEntry(51, "minecraft:iron_sword", 1, "minecraft:gold_ingot", 8, "Sharpened Swords III",
-                "UPGRADE_SHARPNESS", 3));
-        list.add(new ShopEntry(51, "minecraft:iron_sword", 1, "minecraft:gold_ingot", 8, "Sharpened Swords IV",
-                "UPGRADE_SHARPNESS", 4));
-        list.add(new ShopEntry(51, "minecraft:iron_sword", 1, "minecraft:gold_ingot", 8, "Sharpened Swords V",
-                "UPGRADE_SHARPNESS", 5));
+        list.add(new ShopEntry(51, "minecraft:iron_sword", 1, "minecraft:gold_ingot", 8,
+                "two-dimensional-bedwars.shop.upgrade.sharpness", "UPGRADE_SHARPNESS", 1));
+        list.add(new ShopEntry(51, "minecraft:iron_sword", 1, "minecraft:gold_ingot", 8,
+                "two-dimensional-bedwars.shop.upgrade.sharpness", "UPGRADE_SHARPNESS", 2));
+        list.add(new ShopEntry(51, "minecraft:iron_sword", 1, "minecraft:gold_ingot", 8,
+                "two-dimensional-bedwars.shop.upgrade.sharpness", "UPGRADE_SHARPNESS", 3));
+        list.add(new ShopEntry(51, "minecraft:iron_sword", 1, "minecraft:gold_ingot", 8,
+                "two-dimensional-bedwars.shop.upgrade.sharpness", "UPGRADE_SHARPNESS", 4));
+        list.add(new ShopEntry(51, "minecraft:iron_sword", 1, "minecraft:gold_ingot", 8,
+                "two-dimensional-bedwars.shop.upgrade.sharpness", "UPGRADE_SHARPNESS", 5));
 
         return list;
     }
@@ -415,6 +440,10 @@ public class GameConfig {
 
         if (forgeLevels == null)
             forgeLevels = defaultForgeLevels();
+        if (publicGeneratorLevels == null)
+            publicGeneratorLevels = defaultPublicGeneratorLevels();
+        if (eventSettings == null)
+            eventSettings = new EventSettings();
     }
 
     public static void save() {
@@ -425,6 +454,69 @@ public class GameConfig {
             e.printStackTrace();
         }
     }
+
+    public EventSettings eventSettings = new EventSettings();
+
+    public static class EventSettings {
+        public int diamondIISeconds = 360; // 6 mins
+        public int emeraldIISeconds = 720; // 12 mins
+        public int diamondIIISeconds = 1080; // 18 mins
+        public int emeraldIIISeconds = 1440; // 24 mins
+        public int bedDestructionSeconds = 1800; // 30 mins
+        public int suddenDeathSeconds = 2160; // 36 mins
+        public int gameEndSeconds = 2520; // 42 mins
+    }
+
+    // Public Generator Levels (Diamond/Emerald etc upgrades)
+    public List<PublicGeneratorLevel> publicGeneratorLevels = defaultPublicGeneratorLevels();
+
+    public static class PublicGeneratorLevel {
+        public int level; // 1, 2, 3
+        public List<GeneratorSetting> settings; // Settings for each type (Diamond, Emerald, Gold, Netherite)
+
+        public PublicGeneratorLevel(int level, List<GeneratorSetting> settings) {
+            this.level = level;
+            this.settings = settings;
+        }
+    }
+
+    private static List<PublicGeneratorLevel> defaultPublicGeneratorLevels() {
+        List<PublicGeneratorLevel> levels = new ArrayList<>();
+
+        // Level 1 (Initial)
+        // Diamond/Gold: 30s
+        // Emerald/Netherite: 55s
+        List<GeneratorSetting> l1 = new ArrayList<>();
+        l1.add(new GeneratorSetting("Diamond", 1, 30.0, 4));
+        l1.add(new GeneratorSetting("Emerald", 1, 55.0, 2));
+        l1.add(new GeneratorSetting("Gold", 1, 30.0, 12));
+        l1.add(new GeneratorSetting("Netherite", 1, 55.0, 2));
+        levels.add(new PublicGeneratorLevel(1, l1));
+
+        // Level 2 (Diamond II / Emerald II)
+        // Diamond/Gold: 23s
+        // Emerald/Netherite: 40s
+        List<GeneratorSetting> l2 = new ArrayList<>();
+        l2.add(new GeneratorSetting("Diamond", 1, 23.0, 4));
+        l2.add(new GeneratorSetting("Emerald", 1, 40.0, 2));
+        l2.add(new GeneratorSetting("Gold", 1, 23.0, 12));
+        l2.add(new GeneratorSetting("Netherite", 1, 40.0, 2));
+        levels.add(new PublicGeneratorLevel(2, l2));
+
+        // Level 3 (Diamond III / Emerald III)
+        // Diamond/Gold: 15s
+        // Emerald/Netherite: 30s
+        List<GeneratorSetting> l3 = new ArrayList<>();
+        l3.add(new GeneratorSetting("Diamond", 1, 15.0, 4));
+        l3.add(new GeneratorSetting("Emerald", 1, 30.0, 2));
+        l3.add(new GeneratorSetting("Gold", 1, 15.0, 12));
+        l3.add(new GeneratorSetting("Netherite", 1, 30.0, 2));
+        levels.add(new PublicGeneratorLevel(3, l3));
+
+        return levels;
+    }
+
+    // ... existing restore config classes ...
 
     public static class RestoreConfig {
         public MapRegion arena1Bounds = new MapRegion(0, 85, 0, 100, 45, 100);

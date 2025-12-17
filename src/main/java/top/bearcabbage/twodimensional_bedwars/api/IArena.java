@@ -12,17 +12,22 @@ public interface IArena {
         ENDING,
         RESTORING
     }
-    
+
     GameStatus getStatus();
-    
+
     List<ITeam> getTeams();
-    
+
     boolean addPlayer(ServerPlayerEntity player);
+
     void removePlayer(ServerPlayerEntity player);
-    
+
     ITeam getTeam(ServerPlayerEntity player);
+
     void spawnNPCs();
-    
+
     void startGame(net.minecraft.server.world.ServerWorld world, int teamCount);
+
     void stopGame();
+
+    java.util.Set<java.util.UUID> getParticipantUUIDs();
 }

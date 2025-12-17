@@ -29,7 +29,7 @@ public abstract class AbstractACScreen extends AbstractButtonHolder implements I
         this.rows = defaultRows;
         this.heldStacks = DefaultedList.ofSize(this.rows * 9, ItemStack.EMPTY);
     }
-    
+
     public AbstractACScreen(int rows) {
         this.rows = rows;
         this.heldStacks = DefaultedList.ofSize(this.rows * 9, ItemStack.EMPTY);
@@ -61,7 +61,8 @@ public abstract class AbstractACScreen extends AbstractButtonHolder implements I
     @Override
     public boolean isEmpty() {
         for (ItemStack itemStack : heldStacks) {
-            if (itemStack.isEmpty()) continue;
+            if (itemStack.isEmpty())
+                continue;
             return false;
         }
         return true;
@@ -105,11 +106,6 @@ public abstract class AbstractACScreen extends AbstractButtonHolder implements I
         return true;
     }
 
-    @Override
-    public Text getDisplayName() {
-        return Text.of(getName());
-    }
-
     protected void fillEmpty() {
         for (int i = 0; i < size(); i++) {
             setStack(i, filler.copy());
@@ -123,7 +119,7 @@ public abstract class AbstractACScreen extends AbstractButtonHolder implements I
 
     protected abstract void addButtons(ServerPlayerEntity viewer);
 
-    public abstract String getName();
+    public abstract Text getTitleText();
 
     @Override
     public @Nullable ScreenHandler createMenu(int syncId, PlayerInventory playerInventory, PlayerEntity player) {
@@ -137,9 +133,14 @@ public abstract class AbstractACScreen extends AbstractButtonHolder implements I
             default -> throw new IllegalArgumentException("invalid rows: " + rows);
         }, syncId, playerInventory, this, player, rows);
     }
-    
+
     @Override
     public int getPage() {
         return 1;
+    }
+
+    @Override
+    public Text getDisplayName() {
+        return getTitleText();
     }
 }

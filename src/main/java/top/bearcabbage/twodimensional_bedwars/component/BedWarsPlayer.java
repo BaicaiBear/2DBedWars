@@ -80,8 +80,8 @@ public class BedWarsPlayer {
         top.bearcabbage.twodimensional_bedwars.data.BedWarsPlayerData.saveBackup(player);
     }
 
-    public void restoreLobbyState(ServerPlayerEntity player) {
-        top.bearcabbage.twodimensional_bedwars.data.BedWarsPlayerData.restoreBackup(player);
+    public boolean restoreLobbyState(ServerPlayerEntity player) {
+        return top.bearcabbage.twodimensional_bedwars.data.BedWarsPlayerData.restoreBackup(player);
     }
 
     public void setArmorLevel(int level) {

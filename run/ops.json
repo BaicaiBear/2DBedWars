@@ -6,8 +6,38 @@
     "bypassesPlayerLimit": false
   },
   {
+    "uuid": "24b3d699-3eea-3993-bbdc-fb7b8a7b47e8",
+    "name": "BaicaiBear",
+    "level": 4,
+    "bypassesPlayerLimit": false
+  },
+  {
     "uuid": "dec201cc-1fa4-3af7-9261-26208e4b16bf",
     "name": "Player285",
+    "level": 4,
+    "bypassesPlayerLimit": false
+  },
+  {
+    "uuid": "3c098a03-04cc-31fd-856f-be4ccab4daf7",
+    "name": "Player500",
+    "level": 4,
+    "bypassesPlayerLimit": false
+  },
+  {
+    "uuid": "04aedfc4-153f-3d65-bb99-866996994a71",
+    "name": "Player297",
+    "level": 4,
+    "bypassesPlayerLimit": false
+  },
+  {
+    "uuid": "3e863622-2d77-3b8e-b124-c7923d3d13f8",
+    "name": "Player402",
+    "level": 4,
+    "bypassesPlayerLimit": false
+  },
+  {
+    "uuid": "3da1e349-17b0-38ed-a07b-1e78c8ebd956",
+    "name": "Player123",
     "level": 4,
     "bypassesPlayerLimit": false
   }

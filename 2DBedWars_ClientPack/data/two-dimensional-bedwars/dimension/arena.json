@@ -1,0 +1,11 @@
+{
+    "type": "minecraft:overworld",
+    "generator": {
+        "type": "two-dimensional-bedwars:arena",
+        "biome_source": {
+            "type": "two-dimensional-bedwars:split",
+            "desert": "minecraft:desert",
+            "nether_wastes": "two-dimensional-bedwars:arena_nether"
+        }
+    }
+}

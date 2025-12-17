@@ -34,6 +34,17 @@ public class ArenaExplosionBehavior extends ExplosionBehavior {
         if (ArenaManager.getInstance().getArena() instanceof Arena gameArena) {
             if (gameArena.getStatus() == GameStatus.PLAYING) {
 
+                // 0. Sudden Death: Allow Creeper Destruction of EVERYTHING
+                if (gameArena.isSuddenDeathActive()) {
+                    net.minecraft.entity.Entity source = explosion.getEntity(); // Using getEntity() mapping if
+                                                                                // available or field access?
+                    // Explosion.class usually has generic `Entity getEntity()` or `getCauser()`.
+                    // Let's use `explosion.getEntity()`. If fail, we fix.
+                    if (source instanceof net.minecraft.entity.mob.CreeperEntity) {
+                        return true;
+                    }
+                }
+
                 // 1. Check if Block is Blast-Proof (Custom Glass)
                 if (gameArena.getData().isBlastProof(pos)) {
                     return false; // NEVER destroy blast-proof glass

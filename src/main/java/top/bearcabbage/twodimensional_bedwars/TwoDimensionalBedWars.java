@@ -27,7 +27,7 @@ import top.bearcabbage.twodimensional_bedwars.command.BedWarsCommand;
 import top.bearcabbage.twodimensional_bedwars.component.Arena;
 import top.bearcabbage.twodimensional_bedwars.api.IArena.GameStatus;
 import top.bearcabbage.twodimensional_bedwars.mechanic.CustomItemHandler;
-import top.bearcabbage.twodimensional_bedwars.entity.BridgeEggEntity;
+
 import net.minecraft.entity.EntityType;
 
 public class TwoDimensionalBedWars implements ModInitializer {
@@ -43,12 +43,23 @@ public class TwoDimensionalBedWars implements ModInitializer {
 
         CustomItemHandler.init();
 
-        Identifier eggId = Identifier.of(MOD_ID, "bridge_egg");
-        RegistryKey<EntityType<?>> eggKey = RegistryKey.of(Registries.ENTITY_TYPE.getKey(), eggId);
+        net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents.LOAD.register((server, world) -> {
+            if (world.getRegistryKey().getValue().getNamespace().equals(MOD_ID) &&
+                    world.getRegistryKey().getValue().getPath().equals("arena")) {
+                world.setTimeOfDay(6000);
+                world.getGameRules().get(net.minecraft.world.GameRules.DO_DAYLIGHT_CYCLE).set(false, server);
+            }
+        });
 
-        Registry.register(Registries.ENTITY_TYPE, eggId,
-                EntityType.Builder.<BridgeEggEntity>create(BridgeEggEntity::new, net.minecraft.entity.SpawnGroup.MISC)
-                        .dimensions(0.25f, 0.25f).build(eggKey));
+        // Safe Breakdown on Server Stop
+        net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents.SERVER_STOPPING.register(server -> {
+            if (ArenaManager.getInstance().getArena() instanceof Arena gameArena) {
+                if (gameArena.getStatus() == GameStatus.PLAYING) {
+                    LOGGER.info("Server stopping: Forcing game end and cleanup...");
+                    gameArena.stopGame();
+                }
+            }
+        });
 
         net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents.SERVER_STARTING.register(server -> {
             try {
@@ -132,23 +143,33 @@ public class TwoDimensionalBedWars implements ModInitializer {
             return true;
         });
 
-        ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
-            if (ArenaManager.getInstance().getArena() instanceof Arena gameArena) {
-                gameArena.addPlayer(handler.player);
-            }
-        });
-
         PlayerBlockBreakEvents.BEFORE.register((world, player, pos, state, blockEntity) -> {
+            if (player.isCreative())
+                return true;
+
             if (ArenaManager.getInstance().getArena() instanceof Arena gameArena) {
                 if (player instanceof ServerPlayerEntity serverPlayer) {
-                    if (gameArena.getStatus() == GameStatus.PLAYING) {
-                        if (gameArena.getData().isBlockPlayerPlaced(pos)
-                                || state.getBlock() instanceof net.minecraft.block.BedBlock) {
-                            return gameArena.handleBlockBreak(serverPlayer, pos, state);
-                        } else {
-                            serverPlayer.sendMessage(Text.literal("§cYou cannot break map blocks!"), true);
-                            return false;
-                        }
+                    // 1. If Game is NOT playing, allow everything.
+                    if (gameArena.getStatus() != GameStatus.PLAYING) {
+                        return true;
+                    }
+
+                    // 2. If Player is NOT in the Game World, allow everything.
+                    // (Assuming lobby is a different world, or at least consistent with gameWorld
+                    // tracking)
+                    if (gameArena.getGameWorld() != null && player.getWorld() != gameArena.getGameWorld()) {
+                        return true;
+                    }
+
+                    // 3. Game is PLAYING and Player is in Game World.
+                    // Apply Restrictions.
+                    if (gameArena.getData().isBlockPlayerPlaced(pos)
+                            || state.getBlock() instanceof net.minecraft.block.BedBlock) {
+                        return gameArena.handleBlockBreak(serverPlayer, pos, state);
+                    } else {
+                        serverPlayer.sendMessage(
+                                Text.translatable("two-dimensional-bedwars.block.break_map_prevention"), true);
+                        return false;
                     }
                 }
             }
@@ -162,7 +183,8 @@ public class TwoDimensionalBedWars implements ModInitializer {
                         net.minecraft.block.BlockState state = world.getBlockState(hitResult.getBlockPos());
 
                         if (state.getBlock() == net.minecraft.block.Blocks.CRAFTING_TABLE) {
-                            player.sendMessage(Text.literal("§cCrafting is disabled!"), true);
+                            player.sendMessage(Text.translatable("two-dimensional-bedwars.block.crafting_disabled"),
+                                    true);
                             return ActionResult.FAIL;
                         }
 
@@ -173,7 +195,8 @@ public class TwoDimensionalBedWars implements ModInitializer {
 
                         if (state.getBlock() instanceof net.minecraft.block.BedBlock) {
                             if (!serverPlayer.isSneaking()) {
-                                serverPlayer.sendMessage(Text.literal("§cYou cannot sleep or set spawn here!"), true);
+                                serverPlayer.sendMessage(
+                                        Text.translatable("two-dimensional-bedwars.block.sleep_disabled"), true);
                                 return ActionResult.FAIL;
                             }
                         }
@@ -220,10 +243,32 @@ public class TwoDimensionalBedWars implements ModInitializer {
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
             ServerPlayerEntity player = handler.getPlayer();
             if (top.bearcabbage.twodimensional_bedwars.data.BedWarsPlayerData.hasBackup(player)) {
-                top.bearcabbage.twodimensional_bedwars.data.BedWarsPlayerData.restoreBackup(player);
-                player.sendMessage(Text.of("§c[BedWars] Backup restored due to unexpected disconnect/restart."), false);
+                boolean restored = top.bearcabbage.twodimensional_bedwars.data.BedWarsPlayerData.restoreBackup(player);
+                if (restored) {
+                    player.sendMessage(Text.translatable("two-dimensional-bedwars.backup.restored"), false);
+
+                    // Fix: If player successfully restored but was still tracked as "In Game",
+                    // we must remove them from the Arena logic WITHOUT triggering another
+                    // restore/wipe.
+                    if (ArenaManager.getInstance().getArena() instanceof Arena gameArena) {
+                        if (gameArena.getTeam(player) != null) {
+                            gameArena.leavePlayer(player, true); // true = Skip Restore
+                        }
+                    }
+                }
             }
         });
+
+        ServerPlayConnectionEvents.DISCONNECT.register((handler, server) -> {
+            ServerPlayerEntity player = handler.getPlayer();
+            if (ArenaManager.getInstance().getArena() instanceof Arena gameArena) {
+                // Determine if player needs to be removed from Arena
+                // (Waiting, Spectator, or Playing)
+                // Arena's safe leavePlayer handles all cases or ignores if unknown.
+                gameArena.leavePlayer(player);
+            }
+        });
+
         LOGGER.info("BedWars Engine initialized!");
     }
 }

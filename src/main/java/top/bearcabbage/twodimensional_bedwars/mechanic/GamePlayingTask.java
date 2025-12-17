@@ -1,47 +1,154 @@
 package top.bearcabbage.twodimensional_bedwars.mechanic;
 
+import java.util.ArrayList;
+
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.text.Text;
 import top.bearcabbage.twodimensional_bedwars.api.ITeam;
 import top.bearcabbage.twodimensional_bedwars.component.Arena;
 import top.bearcabbage.twodimensional_bedwars.component.BedWarsTeam;
 import top.bearcabbage.twodimensional_bedwars.component.OreGenerator;
+import net.minecraft.util.Formatting;
 
 public class GamePlayingTask {
     private final Arena arena;
-    private int bedsDestroyCountdown = 3600; // Example 1 hour? Spec says timer logic
-    private int dragonSpawnCountdown = 4200;
-    private int gameEndCountdown = 4800;
 
-    public GamePlayingTask(Arena arena) {
-        this.arena = arena;
+    // Events
+    public static class GameEvent {
+        public Text name;
+        public int timeSeconds;
+        public java.util.function.Consumer<ServerWorld> action;
+
+        public GameEvent(Text name, int timeSeconds, java.util.function.Consumer<ServerWorld> action) {
+            this.name = name;
+            this.timeSeconds = timeSeconds;
+            this.action = action;
+        }
     }
 
-    public int getBedsDestroyCountdown() {
-        return bedsDestroyCountdown;
-    }
-
-    public int getDragonSpawnCountdown() {
-        return dragonSpawnCountdown;
-    }
-
-    public int getGameEndCountdown() {
-        return gameEndCountdown;
-    }
+    private final List<GameEvent> events = new ArrayList<>();
+    private int elapsedTime = 0; // In Seconds
 
     private final Map<UUID, Integer> respawnTimers = new HashMap<>();
     private int tickCounter = 0;
 
-    public void addRespawn(UUID uuid, int seconds) {
-        respawnTimers.put(uuid, seconds);
+    public GamePlayingTask(Arena arena) {
+        this.arena = arena;
+        registerEvents();
+    }
+
+    private void registerEvents() {
+        top.bearcabbage.twodimensional_bedwars.config.GameConfig config = top.bearcabbage.twodimensional_bedwars.config.GameConfig
+                .getInstance();
+
+        // Helper to apply level settings for specific types
+        // types: list of identifiers to match e.g. ["Diamond", "Gold"]
+        java.util.function.BiConsumer<Integer, List<String>> upgradeGenerators = (level, types) -> {
+            config.publicGeneratorLevels.stream().filter(l -> l.level == level).findFirst().ifPresent(lvl -> {
+                for (top.bearcabbage.twodimensional_bedwars.config.GameConfig.GeneratorSetting setting : lvl.settings) {
+                    // Check if this setting is for one of the requested types
+                    if (setting.type != null && types.stream().anyMatch(t -> t.equalsIgnoreCase(setting.type))) {
+                        for (OreGenerator gen : arena.getPublicGenerators()) {
+                            if (gen.getIdentifier().equalsIgnoreCase(setting.type)) {
+                                gen.updateSettings(setting.amount, setting.delaySeconds, setting.limit);
+                            }
+                        }
+                    }
+                }
+            });
+        };
+
+        // | 进程 | 描述 | 时间 | 倒计时 |
+        // |钻石点II级|钻石点生成钻石速度加快|开局6分钟后|6：00|
+        events.add(new GameEvent(Text.translatable("two-dimensional-bedwars.event_name.diamond_ii"),
+                config.eventSettings.diamondIISeconds, (world) -> {
+                    upgradeGenerators.accept(2, List.of("Diamond", "Gold"));
+                    arena.broadcastToGame(world.getServer(),
+                            Text.translatable("two-dimensional-bedwars.event.diamond_ii").formatted(Formatting.AQUA));
+                }));
+
+        // |绿宝石点II级|绿宝石点生成绿宝石速度加快|开局12分钟后|6：00|
+        events.add(new GameEvent(Text.translatable("two-dimensional-bedwars.event_name.emerald_ii"),
+                config.eventSettings.emeraldIISeconds, (world) -> {
+                    upgradeGenerators.accept(2, List.of("Emerald", "Netherite"));
+                    arena.broadcastToGame(world.getServer(),
+                            Text.translatable("two-dimensional-bedwars.event.emerald_ii").formatted(Formatting.GREEN));
+                }));
+
+        // |钻石点III级|钻石点生成钻石速度为最快|开局18分钟后|6：00|
+        events.add(new GameEvent(Text.translatable("two-dimensional-bedwars.event_name.diamond_iii"),
+                config.eventSettings.diamondIIISeconds, (world) -> {
+                    upgradeGenerators.accept(3, List.of("Diamond", "Gold"));
+                    arena.broadcastToGame(world.getServer(),
+                            Text.translatable("two-dimensional-bedwars.event.diamond_iii").formatted(Formatting.AQUA));
+                }));
+
+        // |绿宝石点III级|绿宝石点生成绿宝石速度为最快|开局24分钟后|6：00|
+        events.add(new GameEvent(Text.translatable("two-dimensional-bedwars.event_name.emerald_iii"),
+                config.eventSettings.emeraldIIISeconds, (world) -> {
+                    upgradeGenerators.accept(3, List.of("Emerald", "Netherite"));
+                    arena.broadcastToGame(world.getServer(),
+                            Text.translatable("two-dimensional-bedwars.event.emerald_iii").formatted(Formatting.GREEN));
+                }));
+
+        // |床自毁|所有队伍未被摧毁的床自动摧毁|开局30分钟后|6：00|
+        events.add(new GameEvent(Text.translatable("two-dimensional-bedwars.event_name.bed_destruction"),
+                config.eventSettings.bedDestructionSeconds, (world) -> {
+                    for (ITeam team : arena.getTeams()) {
+                        if (team instanceof BedWarsTeam bwTeam) {
+                            // Destroy both beds if not destroyed
+                            checkAndBreakBed(world, bwTeam, 1);
+                            checkAndBreakBed(world, bwTeam, 2);
+                        }
+                    }
+                    arena.broadcastToGame(world.getServer(),
+                            Text.translatable("two-dimensional-bedwars.event.bed_destruction").formatted(Formatting.RED,
+                                    Formatting.BOLD));
+                }));
+
+        // |末影龙出没|末影龙开始在地图中游荡并攻击玩家|开局36分钟后|6：00|
+        events.add(new GameEvent(Text.translatable("two-dimensional-bedwars.event_name.sudden_death"),
+                config.eventSettings.suddenDeathSeconds, (world) -> {
+                    arena.broadcastToGame(world.getServer(),
+                            Text.translatable("two-dimensional-bedwars.event.sudden_death").formatted(Formatting.RED,
+                                    Formatting.BOLD));
+                    suddenDeathActive = true;
+                }));
+
+        // |游戏结束|游戏结束，所有存活的玩家不会判定为胜利。|开局42分钟后|6：00|
+        events.add(new GameEvent(Text.translatable("two-dimensional-bedwars.event_name.game_end"),
+                config.eventSettings.gameEndSeconds, (world) -> {
+                    arena.broadcastToGame(world.getServer(),
+                            Text.translatable("two-dimensional-bedwars.event.game_over").formatted(Formatting.RED,
+                                    Formatting.BOLD));
+                    arena.stopGame();
+                }));
+
+        // Sort events by time just to be safe
+        events.sort((e1, e2) -> Integer.compare(e1.timeSeconds, e2.timeSeconds));
+    }
+
+    // Better broadcast strategy: pass World to the event execution or store last
+    // world
+    // For now, let's keep the runnable simple and do logic in tick if needed,
+    // OR just use the players list from arena which we can access.
+
+    private boolean suddenDeathActive = false;
+    private boolean gameWinning = false;
+
+    public boolean isSuddenDeathActive() {
+        return suddenDeathActive;
     }
 
     public void run(ServerWorld world) {
         // Run every tick (20Hz)
-        // Iterate Teams and Tick Generators
+
+        // 1. Generators
         for (ITeam team : arena.getTeams()) {
             if (team instanceof BedWarsTeam bwTeam) {
                 for (OreGenerator generator : bwTeam.getLiveGenerators()) {
@@ -49,13 +156,11 @@ public class GamePlayingTask {
                 }
             }
         }
-
-        // Tick Public Generators
         for (OreGenerator generator : arena.getPublicGenerators()) {
             generator.tick(world);
         }
 
-        // Bed Integrity Check (Every 10 Ticks)
+        // 2. Bed Integrity Check (Every 10 Ticks)
         if (tickCounter % 10 == 0) {
             for (ITeam team : arena.getTeams()) {
                 if (team instanceof BedWarsTeam bwTeam) {
@@ -65,74 +170,232 @@ public class GamePlayingTask {
             }
         }
 
-        // Run once per second logic (20 ticks)
+        // 3. One Second Logic
         tickCounter++;
         if (tickCounter < 20) {
             return;
         }
         tickCounter = 0;
+        elapsedTime++;
 
-        // Decrement counters
-        bedsDestroyCountdown--;
-        dragonSpawnCountdown--;
-        gameEndCountdown--;
+        // 4. Check Events
+        for (GameEvent event : events) {
+            if (event.timeSeconds == elapsedTime) {
+                event.action.accept(world);
+                // Broadcast handled safely in action now or explicitly here if needed
+            }
+        }
 
-        // Handle Respawn Queue
+        // 5. Respawn Timers
         Iterator<Map.Entry<UUID, Integer>> iterator = respawnTimers.entrySet().iterator();
         while (iterator.hasNext()) {
             Map.Entry<UUID, Integer> entry = iterator.next();
             int timeLeft = entry.getValue() - 1;
             if (timeLeft <= 0) {
-                // Trigger respawn
                 arena.respawnPlayer(entry.getKey(), world);
                 iterator.remove();
             } else {
                 entry.setValue(timeLeft);
-                // Optionally send title/message to player about time left
             }
         }
 
-        // Check NextEvent timer logic
-        if (bedsDestroyCountdown == 0) {
-            // Trigger bed destroy
-            for (ITeam team : arena.getTeams()) {
-                team.setBedDestroyed(true);
-            }
-            // Broadcast message logic would go here
+        // 6. Sudden Death Creepers
+        if (suddenDeathActive) {
+            spawnSuddenDeathCreepers(world);
         }
+
+        // 7. Win Condition (Every 1s)
+        if (!gameWinning && tickCounter % 20 == 0) {
+            checkWinCondition(world);
+        }
+    }
+
+    private void checkWinCondition(ServerWorld world) {
+        if (arena.getTeams().size() < 2)
+            return;
+
+        List<ITeam> aliveTeams = new ArrayList<>();
+        for (ITeam team : arena.getTeams()) {
+            if (team instanceof BedWarsTeam bwTeam) {
+                boolean bedsGone = bwTeam.isBedDestroyed(1) && bwTeam.isBedDestroyed(2);
+                boolean hasAlivePlayers = false;
+                for (top.bearcabbage.twodimensional_bedwars.component.BedWarsPlayer p : bwTeam.getPlayers()) {
+                    if (p.getState() == 1) {
+                        hasAlivePlayers = true;
+                        break;
+                    }
+                }
+
+                if (!bedsGone || hasAlivePlayers) {
+                    aliveTeams.add(bwTeam);
+                }
+            }
+        }
+
+        if (aliveTeams.size() == 1) {
+            gameWinning = true;
+            BedWarsTeam winner = (BedWarsTeam) aliveTeams.get(0);
+            triggerWin(world, winner);
+        }
+    }
+
+    private void triggerWin(ServerWorld world, BedWarsTeam winner) {
+        arena.broadcastToGame(world.getServer(),
+                Text.translatable("two-dimensional-bedwars.event.victory", winner.getName()).formatted(Formatting.GOLD,
+                        Formatting.BOLD));
+
+        Text title = Text.translatable("two-dimensional-bedwars.title.victory").formatted(Formatting.GOLD,
+                Formatting.BOLD);
+        Text subtitle = Text.translatable("two-dimensional-bedwars.subtitle.victory", winner.getName())
+                .formatted(Formatting.YELLOW);
+
+        for (UUID uuid : arena.getParticipantUUIDs()) {
+            net.minecraft.server.network.ServerPlayerEntity p = world.getServer().getPlayerManager().getPlayer(uuid);
+            if (p != null) {
+                ITeam pTeam = arena.getTeam(p);
+                if (pTeam == winner) {
+                    p.networkHandler.sendPacket(new net.minecraft.network.packet.s2c.play.TitleS2CPacket(title));
+                    p.networkHandler.sendPacket(new net.minecraft.network.packet.s2c.play.SubtitleS2CPacket(subtitle));
+
+                    // Celebration: Spectator & Teleport Up
+                    p.changeGameMode(net.minecraft.world.GameMode.SPECTATOR);
+                    p.teleport(world, p.getX(), 80.0, p.getZ(),
+                            java.util.EnumSet.noneOf(net.minecraft.network.packet.s2c.play.PositionFlag.class),
+                            p.getYaw(), p.getPitch(), false);
+                } else {
+                    Text defeatTitle = Text.translatable("two-dimensional-bedwars.title.defeat");
+                    Text defeatSubtitle = Text.translatable("two-dimensional-bedwars.subtitle.defeat",
+                            winner.getName());
+                    p.networkHandler.sendPacket(new net.minecraft.network.packet.s2c.play.TitleS2CPacket(defeatTitle));
+                    p.networkHandler
+                            .sendPacket(new net.minecraft.network.packet.s2c.play.SubtitleS2CPacket(defeatSubtitle));
+                }
+            }
+        }
+
+        spawnFireworks(world, winner.getSpawnPoint(1));
+        spawnFireworks(world, winner.getSpawnPoint(2));
+
+        // Schedule Stop in 10s
+        events.add(new GameEvent(Text.translatable("two-dimensional-bedwars.event_name.game_end"), elapsedTime + 10,
+                (w) -> {
+                    arena.stopGame();
+                }));
+    }
+
+    private void spawnFireworks(ServerWorld world, net.minecraft.util.math.BlockPos pos) {
+        if (pos == null)
+            return;
+        net.minecraft.item.ItemStack stack = new net.minecraft.item.ItemStack(net.minecraft.item.Items.FIREWORK_ROCKET);
+        // Simple Flight 1
+        net.minecraft.component.type.FireworksComponent fireworks = new net.minecraft.component.type.FireworksComponent(
+                (byte) 1, List.of());
+        stack.set(net.minecraft.component.DataComponentTypes.FIREWORKS, fireworks);
+
+        net.minecraft.entity.projectile.FireworkRocketEntity rocket = new net.minecraft.entity.projectile.FireworkRocketEntity(
+                world, pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5, stack);
+        world.spawnEntity(rocket);
+    }
+
+    private void spawnSuddenDeathCreepers(ServerWorld world) {
+        // Frequency increased by 100x as requested.
+        for (int i = 0; i < 100; i++) {
+            // Attempt to spawn in both arenas occasionally
+            if (world.random.nextFloat() < 0.7f) {
+                spawnCreeperInArena(world, 0, 0); // Arena 1 center
+            }
+            if (world.random.nextFloat() < 0.7f) {
+                spawnCreeperInArena(world, 400, 0); // Arena 2 center
+            }
+        }
+    }
+
+    private void spawnCreeperInArena(ServerWorld world, int centerX, int centerZ) {
+        // Random pos within 150 blocks of center (Diameter 300)
+        double x = centerX + (world.random.nextDouble() - 0.5) * 300;
+        double z = centerZ + (world.random.nextDouble() - 0.5) * 300;
+
+        // Find surface?
+        // Raycast down from Y=120
+        int y = world.getTopY(net.minecraft.world.Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, (int) x, (int) z);
+
+        // Check bounds (Y should be reasonable, > 0)
+        if (y < 0 || y > 200)
+            return;
+
+        net.minecraft.util.math.BlockPos pos = new net.minecraft.util.math.BlockPos((int) x, y, (int) z);
+        if (!world.getBlockState(pos.down()).isAir()) {
+            net.minecraft.entity.mob.CreeperEntity creeper = new net.minecraft.entity.mob.CreeperEntity(
+                    net.minecraft.entity.EntityType.CREEPER, world);
+            creeper.refreshPositionAndAngles(x, y, z, world.random.nextFloat() * 360, 0);
+
+            // Ignite
+            creeper.ignite();
+
+            // Charge using mechanic
+            net.minecraft.entity.LightningEntity lightning = new net.minecraft.entity.LightningEntity(
+                    net.minecraft.entity.EntityType.LIGHTNING_BOLT, world);
+            if (lightning != null) {
+                lightning.refreshPositionAndAngles(x, y, z, 0, 0);
+                creeper.onStruckByLightning(world, lightning);
+                lightning.discard();
+            }
+            creeper.ignite();
+
+            world.spawnEntity(creeper);
+        }
+    }
+
+    public GameEvent getNextEvent() {
+        for (GameEvent event : events) {
+            if (event.timeSeconds > elapsedTime) {
+                return event;
+            }
+        }
+        return null;
+    }
+
+    public int getElapsedTime() {
+        return elapsedTime;
+    }
+
+    public void addRespawn(UUID uuid, int seconds) {
+        respawnTimers.put(uuid, seconds);
     }
 
     private void checkBedIntegrity(ServerWorld world, BedWarsTeam team, int arenaId) {
         if (team.isBedDestroyed(arenaId))
-            return; // Already destroyed
+            return;
 
         net.minecraft.util.math.BlockPos bedPos = team.getBedLocation(arenaId);
         if (bedPos == null)
             return;
 
-        // Check if block is a Bed
-        // Note: BedBlock usually has 2 parts. We stored the 'Foot' pos (spawn).
-        // If the block at spawn is NOT a bed, it's gone.
-        // Even if only the head is broken, the foot should technically also break or
-        // update?
-        // In Minecraft, breaking one half breaks the other.
-        // So checking the stored pos is sufficient.
-
-        // We use world.getBlockState(bedPos).getBlock() instanceof
-        // net.minecraft.block.BedBlock
         if (!(world.getBlockState(bedPos).getBlock() instanceof net.minecraft.block.BedBlock)) {
-            // Bed is gone!
             team.setBedDestroyed(arenaId, true);
-
-            // Broadcast
+            Text arenaName = arenaId == 1 ? Text.translatable("two-dimensional-bedwars.arena.overworld")
+                    : Text.translatable("two-dimensional-bedwars.arena.nether");
             world.getServer().getPlayerManager().getPlayerList()
-                    .forEach(p -> p.sendMessage(net.minecraft.text.Text.literal("§l§c" + team.getName() + " Bed (Arena "
-                            + arenaId + ") was destroyed (Explosion/Check)!")));
+                    .forEach(p -> p.sendMessage(
+                            Text.translatable("two-dimensional-bedwars.event.bed_destroyed", team.getName(),
+                                    arenaName)));
+        }
+    }
 
-            // Optional: Play Sound
-            // world.playSound(null, bedPos,
-            // net.minecraft.sound.SoundEvents.ENTITY_WITHER_SPAWN,
-            // net.minecraft.sound.SoundCategory.BLOCKS, 1f, 1f);
+    private void checkAndBreakBed(ServerWorld world, BedWarsTeam team, int arenaId) {
+        if (!team.isBedDestroyed(arenaId)) {
+            team.setBedDestroyed(arenaId, true);
+            // Physically break the bed
+            net.minecraft.util.math.BlockPos bedPos = team.getBedLocation(arenaId);
+            if (bedPos != null) {
+                // Break block (drop=false, entity=null)
+                // Only break if it is actually a bed to be polite, though event implies
+                // destruction.
+                net.minecraft.block.BlockState state = world.getBlockState(bedPos);
+                if (state.getBlock() instanceof net.minecraft.block.BedBlock) {
+                    world.breakBlock(bedPos, false);
+                }
+            }
         }
     }
 }
