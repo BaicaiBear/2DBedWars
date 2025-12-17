@@ -161,7 +161,7 @@ Each team has symmetrical spawns in both arenas, connected by Nether Portals.
 
 ## 📊 Technical Details
 
-### Team Forge Levels
+### Team Ore Generator Levels
 Upgrade your team's generator to produce resources faster.
 
 | Level | Iron (Overworld) | Quartz (Nether) | Emerald (Overworld) | Cost        |
@@ -187,7 +187,7 @@ Events occur at specific times during the match to speed up gameplay and force a
 
 | Time     | Event                  | Effect                                                        |
 | :------- | :--------------------- | :------------------------------------------------------------ |
-| **0:00** | **Game Start**         | Forge at Level 0: Iron 3/2s                                   |
+| **0:00** | **Game Start**         | Team Generator at Level 0: Iron 3/2s                          |
 | **6:00** | **Diamond II**         | Diamond & Gold generators upgrade to 23s spawn rate           |
 | **12:00**| **Emerald II**         | Emerald & Netherite generators upgrade to 40s spawn rate      |
 | **18:00**| **Diamond III**        | Diamond & Gold generators upgrade to 15s spawn rate (MAX)     |
@@ -283,7 +283,7 @@ Events occur at specific times during the match to speed up gameplay and force a
 
 ### 💎 Team Upgrades (Shared)
 
-**Forge Upgrade** (Increases base generator production):
+**Team Ore Generator Upgrade** (Increases base generator production):
 *   **Level 1**: 4 Diamond - Iron: 5/2s
 *   **Level 2**: 8 Diamond - Iron: 5/2s, Quartz: 1/5s
 *   **Level 3**: 4 Netherite - Iron: 5/2s, Quartz: 2/5s, Emerald: 1/20s
@@ -333,8 +333,8 @@ Events occur at specific times during the match to speed up gameplay and force a
 ### Q: Can I sleep in beds during the game?
 **A:** No, you cannot sleep in beds or set spawn points. Respawn points are fixed at your team's bases.
 
-### Q: Does the Forge upgrade affect public generators?
-**A:** No. Forge upgrades only affect your team's base generators. Public generators upgrade automatically based on game events.
+### Q: Does the Team Ore Generator upgrade affect public generators?
+**A:** No. Team Ore Generator upgrades only affect your team's base generators. Public generators upgrade automatically based on game events.
 
 ### Q: Can I break map blocks?
 **A:** No. You can only break blocks that players have placed. Original map blocks are protected.
@@ -351,7 +351,7 @@ Events occur at specific times during the match to speed up gameplay and force a
 *   **Sudden Death Exception**: During Sudden Death, charged creepers can destroy everything including map blocks!
 
 ### Q: How do team upgrades work?
-**A:** Team upgrades (Sharpness, Protection, Haste, Forge) are **permanent** once purchased and apply to **all team members** instantly. Multiple teammates can contribute to buying them.
+**A:** Team upgrades (Sharpness, Protection, Haste, Team Ore Generator) are **permanent** once purchased and apply to **all team members** instantly. Multiple teammates can contribute to buying them.
 
 ### Q: Can I rejoin if I leave the game?
 **A:** If you leave during an active match, you'll need to confirm the command twice. Leaving may result in team elimination if you're the last member. You **cannot rejoin** a game in progress - you can only spectate.
@@ -365,14 +365,14 @@ Events occur at specific times during the match to speed up gameplay and force a
 ### Q: What's the best resource priority?
 **A:** 
 1.   **Iron/Quartz**: Building blocks, basic tools, and daily purchases
-2.   **Diamond**: Team forge upgrades and protection upgrades (highest priority!)
+2.   **Diamond**: Team Ore Generator upgrades and Protection upgrades (highest priority!)
 3.   **Gold**: Combat items (TNT, Golden Apples, Sharpness upgrades)
 4.   **Emerald**: Special items (Bridge Egg, Speed Potions, Diamond Armor)
 5.   **Netherite**: Ultimate items (Diamond Sword, Ender Pearl, Invisibility)
 
 ### Q: How many generators are there?
 **A:** 
-*   **Team Generators**: Each team has 2 generators (one in each arena) that produce Iron/Quartz based on Forge level
+*   **Team Generators**: Each team has 2 generators (one in each arena) that produce Iron/Quartz based on Team Ore Generator level
 *   **Diamond Generators**: 4 generators in Overworld arena (shared)
 *   **Gold Generators**: 4 generators in Nether arena (shared)
 *   **Emerald Generators**: 2 generators in Overworld arena (shared)
