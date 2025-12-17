@@ -29,24 +29,53 @@ Each team has symmetrical spawns in both arenas, with Nether Portals connecting 
 
 ## 🎮 Getting Started
 
-### Joining a Game
+### Step-by-Step: Joining and Starting a Game
 
-1.   **Join the lobby**: Use `/bedwars join` to enter the waiting area
-2.   **Select your team**: Use `/bedwars team <id>` where:
-     *   `1` = Red Team
-     *   `2` = Blue Team
-     *   `3` = Green Team
-     *   `4` = Yellow Team
-3.   **Wait for start**: Any player can use `/bedwars start` to begin the countdown
-4.   **Game begins**: After map restoration, you'll be teleported to your base
+**Step 1: Join the Lobby**
+*   Use command: `/bedwars join`
+*   You'll receive a message confirming you've joined
+*   You're now in the waiting area
 
-### Pre-Game Rules
+**Step 2: Select Your Team**
+*   Use command: `/bedwars team <id>` where:
+    *   `1` = Red Team
+    *   `2` = Blue Team  
+    *   `3` = Green Team
+    *   `4` = Yellow Team
+*   You'll see: "Selected Team [TeamName] ([TeamColor])"
+*   You can change teams anytime before the game starts
 
-*   Teams can have **1-8 players** each
-*   At least **one team** must have a player to start
-*   You can **change teams** before the game starts
-*   Once the game begins, team selection is **locked**
-*   The lobby is in a different dimension - you'll be teleported to the arena
+**Step 3: Choosing 2-Team or 4-Team Mode**
+The game automatically detects the mode based on team selections:
+*   **2-Team Game**: Only Red and Blue teams have players
+    *   Minimum: 1 player on Red, 1 player on Blue
+*   **4-Team Game**: At least one player selects Green or Yellow
+    *   Minimum: At least 1 player on each active team (teams with no players won't be created)
+
+**Step 4: Start the Game**
+*   Any player uses: `/bedwars start`
+*   You'll see: "Game starting in X seconds!"
+*   The map restoration process begins
+
+**Step 5: Preparation Phase** (What You'll See)
+*   Message: "Waiting for Map Restoration..."
+*   The arena map resets to its original state (takes a few seconds)
+*   Message: "Map restored! Teleporting players..."
+*   **10-second countdown** begins
+*   You'll be teleported to your team's spawn point in one of the arenas
+
+**Step 6: Game Begins!**
+*   You spawn with a wooden sword and a shop item (paper)
+*   Resource generators start producing materials
+*   Defend your beds and attack enemy teams!
+
+### Game Start Requirements
+
+*   **Minimum players**: Each participating team must have **at least 1 player**
+*   **Empty teams**: Teams with 0 players are not created
+*   **Team balance check**: If any created team has 0 players after initialization, the game will fail to start with message: "Start Failed: Each team must have at least 1 player!"
+*   **Maximum per team**: 8 players per team
+*   **Mode selection**: Automatically switches between 2-team and 4-team based on player selections
 
 ## ⚔️ Gameplay Mechanics
 
