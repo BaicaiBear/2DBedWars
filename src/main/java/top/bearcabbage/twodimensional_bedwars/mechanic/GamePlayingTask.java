@@ -126,7 +126,7 @@ public class GamePlayingTask {
                     arena.broadcastToGame(world.getServer(),
                             Text.translatable("two-dimensional-bedwars.event.game_over").formatted(Formatting.RED,
                                     Formatting.BOLD));
-                    arena.stopGame();
+                    determineWinnerAtGameEnd(world);
                 }));
 
         // Sort events by time just to be safe
@@ -237,6 +237,140 @@ public class GamePlayingTask {
             BedWarsTeam winner = (BedWarsTeam) aliveTeams.get(0);
             triggerWin(world, winner);
         }
+    }
+
+    private void determineWinnerAtGameEnd(ServerWorld world) {
+        if (arena.getTeams().size() < 2) {
+            arena.stopGame();
+            return;
+        }
+
+        List<BedWarsTeam> aliveTeams = new ArrayList<>();
+        for (ITeam team : arena.getTeams()) {
+            if (team instanceof BedWarsTeam bwTeam) {
+                boolean bedsGone = bwTeam.isBedDestroyed(1) && bwTeam.isBedDestroyed(2);
+                boolean hasAlivePlayers = false;
+                for (top.bearcabbage.twodimensional_bedwars.component.BedWarsPlayer p : bwTeam.getPlayers()) {
+                    if (p.getState() == 1) {
+                        hasAlivePlayers = true;
+                        break;
+                    }
+                }
+
+                if (!bedsGone || hasAlivePlayers) {
+                    aliveTeams.add(bwTeam);
+                }
+            }
+        }
+
+        // If only one team alive, they win
+        if (aliveTeams.size() == 1) {
+            gameWinning = true;
+            triggerWin(world, aliveTeams.get(0));
+            return;
+        }
+
+        // If no teams alive or less than 2 teams, end game without winner
+        if (aliveTeams.size() < 2) {
+            arena.broadcastToGame(world.getServer(),
+                    Text.translatable("two-dimensional-bedwars.event.no_winner").formatted(Formatting.GRAY));
+            arena.stopGame();
+            return;
+        }
+
+        // Multiple teams alive - determine winner by tiebreakers
+        BedWarsTeam winner = determineWinnerByTiebreakers(aliveTeams);
+        
+        if (winner != null) {
+            gameWinning = true;
+            triggerWin(world, winner);
+        } else {
+            // No winner - draw
+            arena.broadcastToGame(world.getServer(),
+                    Text.translatable("two-dimensional-bedwars.event.draw").formatted(Formatting.GRAY, Formatting.BOLD));
+            arena.stopGame();
+        }
+    }
+
+    private BedWarsTeam determineWinnerByTiebreakers(List<BedWarsTeam> teams) {
+        // 1. Count alive players for each team
+        Map<BedWarsTeam, Integer> alivePlayerCounts = new HashMap<>();
+        for (BedWarsTeam team : teams) {
+            int count = 0;
+            for (top.bearcabbage.twodimensional_bedwars.component.BedWarsPlayer p : team.getPlayers()) {
+                if (p.getState() == 1) {
+                    count++;
+                }
+            }
+            alivePlayerCounts.put(team, count);
+        }
+
+        // Find max alive players
+        int maxAlivePlayers = alivePlayerCounts.values().stream().max(Integer::compare).orElse(0);
+        List<BedWarsTeam> topTeams = new ArrayList<>();
+        for (BedWarsTeam team : teams) {
+            if (alivePlayerCounts.get(team) == maxAlivePlayers) {
+                topTeams.add(team);
+            }
+        }
+
+        // If only one team has max alive players, they win
+        if (topTeams.size() == 1) {
+            return topTeams.get(0);
+        }
+
+        // 2. Compare by K/D ratio
+        Map<BedWarsTeam, Double> kdRatios = new HashMap<>();
+        for (BedWarsTeam team : topTeams) {
+            int totalKills = 0;
+            int totalDeaths = 0;
+            for (top.bearcabbage.twodimensional_bedwars.component.BedWarsPlayer p : team.getPlayers()) {
+                totalKills += p.getKills();
+                totalDeaths += p.getDeaths();
+            }
+            // Calculate K/D ratio (avoid division by zero)
+            double kdRatio = (totalDeaths == 0) ? totalKills : (double) totalKills / totalDeaths;
+            kdRatios.put(team, kdRatio);
+        }
+
+        double maxKdRatio = kdRatios.values().stream().max(Double::compare).orElse(0.0);
+        List<BedWarsTeam> topKdTeams = new ArrayList<>();
+        for (BedWarsTeam team : topTeams) {
+            if (Math.abs(kdRatios.get(team) - maxKdRatio) < 0.0001) { // Compare doubles with epsilon
+                topKdTeams.add(team);
+            }
+        }
+
+        // If only one team has max K/D ratio, they win
+        if (topKdTeams.size() == 1) {
+            return topKdTeams.get(0);
+        }
+
+        // 3. Compare by total kills
+        Map<BedWarsTeam, Integer> totalKills = new HashMap<>();
+        for (BedWarsTeam team : topKdTeams) {
+            int kills = 0;
+            for (top.bearcabbage.twodimensional_bedwars.component.BedWarsPlayer p : team.getPlayers()) {
+                kills += p.getKills();
+            }
+            totalKills.put(team, kills);
+        }
+
+        int maxKills = totalKills.values().stream().max(Integer::compare).orElse(0);
+        List<BedWarsTeam> topKillTeams = new ArrayList<>();
+        for (BedWarsTeam team : topKdTeams) {
+            if (totalKills.get(team) == maxKills) {
+                topKillTeams.add(team);
+            }
+        }
+
+        // If only one team has max kills, they win
+        if (topKillTeams.size() == 1) {
+            return topKillTeams.get(0);
+        }
+
+        // 4. All tiebreakers same - no winner (draw)
+        return null;
     }
 
     private void triggerWin(ServerWorld world, BedWarsTeam winner) {

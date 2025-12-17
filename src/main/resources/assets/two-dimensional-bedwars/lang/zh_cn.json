@@ -108,5 +108,7 @@
     "two-dimensional-bedwars.event.team_eliminated_quit": "%s 队因所有玩家离开游戏而被淘汰！",
     "two-dimensional-bedwars.command.join_fail_running": "无法加入：游戏正在进行中！",
     "two-dimensional-bedwars.command.join_fail_already": "你已经加入了游戏！",
-    "two-dimensional-bedwars.backup.restore_fail": "§c[BedWars] 恢复大厅备份失败！你已被安全传送。"
+    "two-dimensional-bedwars.backup.restore_fail": "§c[BedWars] 恢复大厅备份失败！你已被安全传送。",
+    "two-dimensional-bedwars.event.no_winner": "游戏结束，没有获胜者！",
+    "two-dimensional-bedwars.event.draw": "游戏平局！多支队伍打成平手！"
 }
