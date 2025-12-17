@@ -293,23 +293,24 @@ public class GamePlayingTask {
     }
 
     private BedWarsTeam determineWinnerByTiebreakers(List<BedWarsTeam> teams) {
-        // 1. Count alive players for each team
-        Map<BedWarsTeam, Integer> alivePlayerCounts = new HashMap<>();
-        for (BedWarsTeam team : teams) {
-            int count = 0;
-            for (top.bearcabbage.twodimensional_bedwars.component.BedWarsPlayer p : team.getPlayers()) {
-                if (p.getState() == 1) {
-                    count++;
-                }
-            }
-            alivePlayerCounts.put(team, count);
+        // Defensive copy to avoid mutation of input parameter
+        List<BedWarsTeam> teamsCopy = new ArrayList<>(teams);
+        
+        // Calculate statistics once for all teams to avoid redundant iterations
+        Map<BedWarsTeam, TeamStats> teamStatsMap = new HashMap<>();
+        for (BedWarsTeam team : teamsCopy) {
+            teamStatsMap.put(team, calculateTeamStats(team));
         }
-
-        // Find max alive players
-        int maxAlivePlayers = alivePlayerCounts.values().stream().max(Integer::compare).orElse(0);
+        
+        // 1. Count alive players for each team
+        int maxAlivePlayers = teamStatsMap.values().stream()
+                .mapToInt(stats -> stats.alivePlayers)
+                .max()
+                .orElse(0);
+        
         List<BedWarsTeam> topTeams = new ArrayList<>();
-        for (BedWarsTeam team : teams) {
-            if (alivePlayerCounts.get(team) == maxAlivePlayers) {
+        for (BedWarsTeam team : teamsCopy) {
+            if (teamStatsMap.get(team).alivePlayers == maxAlivePlayers) {
                 topTeams.add(team);
             }
         }
@@ -320,23 +321,14 @@ public class GamePlayingTask {
         }
 
         // 2. Compare by K/D ratio
-        Map<BedWarsTeam, Double> kdRatios = new HashMap<>();
-        for (BedWarsTeam team : topTeams) {
-            int totalKills = 0;
-            int totalDeaths = 0;
-            for (top.bearcabbage.twodimensional_bedwars.component.BedWarsPlayer p : team.getPlayers()) {
-                totalKills += p.getKills();
-                totalDeaths += p.getDeaths();
-            }
-            // Calculate K/D ratio (avoid division by zero)
-            double kdRatio = (totalDeaths == 0) ? totalKills : (double) totalKills / totalDeaths;
-            kdRatios.put(team, kdRatio);
-        }
-
-        double maxKdRatio = kdRatios.values().stream().max(Double::compare).orElse(0.0);
+        double maxKdRatio = topTeams.stream()
+                .mapToDouble(team -> teamStatsMap.get(team).kdRatio)
+                .max()
+                .orElse(0.0);
+        
         List<BedWarsTeam> topKdTeams = new ArrayList<>();
         for (BedWarsTeam team : topTeams) {
-            if (Math.abs(kdRatios.get(team) - maxKdRatio) < 0.0001) { // Compare doubles with epsilon
+            if (Math.abs(teamStatsMap.get(team).kdRatio - maxKdRatio) < 0.0001) { // Compare doubles with epsilon
                 topKdTeams.add(team);
             }
         }
@@ -347,19 +339,14 @@ public class GamePlayingTask {
         }
 
         // 3. Compare by total kills
-        Map<BedWarsTeam, Integer> totalKills = new HashMap<>();
-        for (BedWarsTeam team : topKdTeams) {
-            int kills = 0;
-            for (top.bearcabbage.twodimensional_bedwars.component.BedWarsPlayer p : team.getPlayers()) {
-                kills += p.getKills();
-            }
-            totalKills.put(team, kills);
-        }
-
-        int maxKills = totalKills.values().stream().max(Integer::compare).orElse(0);
+        int maxKills = topKdTeams.stream()
+                .mapToInt(team -> teamStatsMap.get(team).totalKills)
+                .max()
+                .orElse(0);
+        
         List<BedWarsTeam> topKillTeams = new ArrayList<>();
         for (BedWarsTeam team : topKdTeams) {
-            if (totalKills.get(team) == maxKills) {
+            if (teamStatsMap.get(team).totalKills == maxKills) {
                 topKillTeams.add(team);
             }
         }
@@ -371,6 +358,39 @@ public class GamePlayingTask {
 
         // 4. All tiebreakers same - no winner (draw)
         return null;
+    }
+    
+    private TeamStats calculateTeamStats(BedWarsTeam team) {
+        int alivePlayers = 0;
+        int totalKills = 0;
+        int totalDeaths = 0;
+        
+        for (top.bearcabbage.twodimensional_bedwars.component.BedWarsPlayer p : team.getPlayers()) {
+            if (p.getState() == 1) {
+                alivePlayers++;
+            }
+            totalKills += p.getKills();
+            totalDeaths += p.getDeaths();
+        }
+        
+        // Calculate K/D ratio (avoid division by zero)
+        double kdRatio = (totalDeaths == 0) ? totalKills : (double) totalKills / totalDeaths;
+        
+        return new TeamStats(alivePlayers, totalKills, totalDeaths, kdRatio);
+    }
+    
+    private static class TeamStats {
+        final int alivePlayers;
+        final int totalKills;
+        final int totalDeaths;
+        final double kdRatio;
+        
+        TeamStats(int alivePlayers, int totalKills, int totalDeaths, double kdRatio) {
+            this.alivePlayers = alivePlayers;
+            this.totalKills = totalKills;
+            this.totalDeaths = totalDeaths;
+            this.kdRatio = kdRatio;
+        }
     }
 
     private void triggerWin(ServerWorld world, BedWarsTeam winner) {
