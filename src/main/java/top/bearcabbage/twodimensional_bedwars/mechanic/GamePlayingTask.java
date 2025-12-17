@@ -205,7 +205,7 @@ public class GamePlayingTask {
         }
 
         // 7. Win Condition (Every 1s)
-        if (!gameWinning && tickCounter % 20 == 0) {
+        if (!gameWinning) {
             checkWinCondition(world);
         }
     }
