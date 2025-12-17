@@ -210,31 +210,39 @@ public class GamePlayingTask {
         }
     }
 
-    private void checkWinCondition(ServerWorld world) {
-        if (arena.getTeams().size() < 2)
-            return;
-
-        List<ITeam> aliveTeams = new ArrayList<>();
+    private List<BedWarsTeam> getAliveTeams() {
+        List<BedWarsTeam> aliveTeams = new ArrayList<>();
         for (ITeam team : arena.getTeams()) {
             if (team instanceof BedWarsTeam bwTeam) {
-                boolean bedsGone = bwTeam.isBedDestroyed(1) && bwTeam.isBedDestroyed(2);
-                boolean hasAlivePlayers = false;
-                for (top.bearcabbage.twodimensional_bedwars.component.BedWarsPlayer p : bwTeam.getPlayers()) {
-                    if (p.getState() == 1) {
-                        hasAlivePlayers = true;
-                        break;
-                    }
-                }
-
-                if (!bedsGone || hasAlivePlayers) {
+                if (isTeamAlive(bwTeam)) {
                     aliveTeams.add(bwTeam);
                 }
             }
         }
+        return aliveTeams;
+    }
+
+    private boolean isTeamAlive(BedWarsTeam team) {
+        boolean bedsGone = team.isBedDestroyed(1) && team.isBedDestroyed(2);
+        boolean hasAlivePlayers = false;
+        for (top.bearcabbage.twodimensional_bedwars.component.BedWarsPlayer p : team.getPlayers()) {
+            if (p.getState() == 1) {
+                hasAlivePlayers = true;
+                break;
+            }
+        }
+        return !bedsGone || hasAlivePlayers;
+    }
+
+    private void checkWinCondition(ServerWorld world) {
+        if (arena.getTeams().size() < 2)
+            return;
+
+        List<BedWarsTeam> aliveTeams = getAliveTeams();
 
         if (aliveTeams.size() == 1) {
             gameWinning = true;
-            BedWarsTeam winner = (BedWarsTeam) aliveTeams.get(0);
+            BedWarsTeam winner = aliveTeams.get(0);
             triggerWin(world, winner);
         }
     }
@@ -245,23 +253,7 @@ public class GamePlayingTask {
             return;
         }
 
-        List<BedWarsTeam> aliveTeams = new ArrayList<>();
-        for (ITeam team : arena.getTeams()) {
-            if (team instanceof BedWarsTeam bwTeam) {
-                boolean bedsGone = bwTeam.isBedDestroyed(1) && bwTeam.isBedDestroyed(2);
-                boolean hasAlivePlayers = false;
-                for (top.bearcabbage.twodimensional_bedwars.component.BedWarsPlayer p : bwTeam.getPlayers()) {
-                    if (p.getState() == 1) {
-                        hasAlivePlayers = true;
-                        break;
-                    }
-                }
-
-                if (!bedsGone || hasAlivePlayers) {
-                    aliveTeams.add(bwTeam);
-                }
-            }
-        }
+        List<BedWarsTeam> aliveTeams = getAliveTeams();
 
         // If only one team alive, they win
         if (aliveTeams.size() == 1) {
