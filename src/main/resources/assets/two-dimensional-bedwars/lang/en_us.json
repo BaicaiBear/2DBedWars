@@ -108,5 +108,7 @@
     "two-dimensional-bedwars.event.team_eliminated_quit": "Team %s has been eliminated as all players have left the game!",
     "two-dimensional-bedwars.command.join_fail_running": "Cannot join: The game is already running!",
     "two-dimensional-bedwars.command.join_fail_already": "You have already joined the game!",
-    "two-dimensional-bedwars.backup.restore_fail": "§c[BedWars] Failed to restore lobby backup! You have been safe-teleported."
+    "two-dimensional-bedwars.backup.restore_fail": "§c[BedWars] Failed to restore lobby backup! You have been safe-teleported.",
+    "two-dimensional-bedwars.event.no_winner": "Game ended with no winner!",
+    "two-dimensional-bedwars.event.draw": "Game ended in a draw! Multiple teams tied!"
 }
