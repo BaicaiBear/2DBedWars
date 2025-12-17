@@ -126,8 +126,9 @@ The game runs on a tick-based system (20 ticks per second):
 2.   **Bed Integrity Check**: Every 10 ticks, verifies beds are intact and updates team status
 3.   **Event System**: Time-based events (Diamond II, Emerald II, etc.) trigger at specified intervals
 4.   **Respawn Timers**: Manages 5-second respawn cooldowns for eliminated players
-5.   **Win Condition Check**: Evaluates remaining teams and declares victory
+5.   **Win Condition Check**: Evaluates remaining teams and declares victory (single team) or applies tiebreakers at game end (multiple teams)
 6.   **Sudden Death**: Spawns charged creepers across both arenas (after 36 minutes)
+7.   **Game End Tiebreakers**: At 42 minutes, determines winner by alive players → K/D ratio → total kills, or declares a draw
 
 ### Death & Respawn Mechanics
 

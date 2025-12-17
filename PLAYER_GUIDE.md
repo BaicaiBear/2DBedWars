@@ -135,10 +135,29 @@ Resources are distributed between the dimensions to force cross-dimensional play
 -   **Netherite**: Ultra-rare currency for the strongest gear.
 
 ## 🏆 How to Win
-1.  Protect your **Red/Blue/Green/Yellow** beds in both dimensions.
-2.  Gather resources from both the Overworld and Nether.
-3.  Travel between worlds to outmaneuver your opponents.
-4.  Destroy both beds of an enemy team to eliminate them!
+
+### Victory Conditions
+
+**Primary Win Condition:**
+*   Be the last team standing! Eliminate all other teams by:
+    1.  Destroying both beds of an enemy team (Overworld AND Nether)
+    2.  Eliminating all their players
+
+**Game End Tiebreaker (42 minutes):**
+
+If multiple teams are still alive when the game timer reaches 42 minutes, the winner is determined by:
+
+1.  **Alive Players Count** - Team with the most alive players wins
+2.  **Kill/Death Ratio** - If tied, team with the highest K/D ratio wins
+3.  **Total Kills** - If still tied, team with the most kills wins
+4.  **Draw** - If all tiebreakers are equal, the game ends in a draw with no winner
+
+**Strategy Tips:**
+*   Protect your **Red/Blue/Green/Yellow** beds in both dimensions
+*   Gather resources from both the Overworld and Nether
+*   Travel between worlds to outmaneuver your opponents
+*   Destroy both beds of enemy teams to eliminate them
+*   Maintain a high K/D ratio and keep your team alive for tiebreaker scenarios!
 
 ## 🌌 Game Concept
 
@@ -194,7 +213,7 @@ Events occur at specific times during the match to speed up gameplay and force a
 | **24:00**| **Emerald III**        | Emerald & Netherite generators upgrade to 30s spawn rate (MAX)|
 | **30:00**| **Bed Destruction**    | 🔥 ALL remaining beds are destroyed automatically!            |
 | **36:00**| **Sudden Death**       | ⚡ Charged creepers spawn continuously in both arenas!        |
-| **42:00**| **Game End (Draw)**    | Game ends with no winner if teams still remain                |
+| **42:00**| **Game End**           | Game ends, winner determined by tiebreakers if multiple teams remain |
 
 **Strategy Notes:**
 *   Rush for early kills before Diamond II (first 6 minutes)
