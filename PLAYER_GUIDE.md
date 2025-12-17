@@ -194,15 +194,15 @@ Events occur at specific times during the match to speed up gameplay and force a
 
 **Note**: You start with a wooden sword. Purchasing swords auto-upgrades your current sword!
 
-### 🛡️ Armor (Permanent Upgrades)
+### 🛡️ Armor (Must Repurchase)
 
 | Item                | Cost        | Effect                                            |
 | :------------------ | :---------- | :------------------------------------------------ |
-| **Chainmail Armor** | 32 Iron     | Basic protection, permanent once purchased        |
+| **Chainmail Armor** | 32 Iron     | Basic protection set                              |
 | **Iron Armor**      | 4 Diamond   | Better protection                                 |
-| **Diamond Armor**   | 10 Emerald  | Best armor, keeps on death if team bed survives   |
+| **Diamond Armor**   | 10 Emerald  | Best armor set                                    |
 
-**Important**: Armor is permanent and stays with you after death (if your bed is alive)!
+**Important**: Armor **vanishes on death**! You must repurchase it after respawning.
 
 ### 🛠️ Tools (Progressive Upgrades)
 
@@ -266,67 +266,6 @@ Events occur at specific times during the match to speed up gameplay and force a
 
 **Team Upgrades are permanent for the entire team once purchased!**
 
-## 🎯 Advanced Strategies
-
-### Early Game (0-6 minutes)
-*   **Priority 1**: Upgrade your base forge to Level 1 (4 Diamonds)
-*   **Priority 2**: Get chainmail armor (32 Iron) for basic protection
-*   **Priority 3**: Buy a wood pickaxe to mine faster
-*   **Resource Focus**: Collect Iron and Diamonds from public generators
-*   **Team Coordination**: One player defends, others collect resources
-*   **Early Aggression**: Consider rushing enemy beds with TNT and blocks before they get defenses up
-
-### Mid Game (6-24 minutes)
-*   **Forge Upgrades**: Work towards Forge Level 2 and 3 for Quartz/Emerald production
-*   **Team Upgrades**: Invest in Sharpness and Protection upgrades
-*   **Better Gear**: Upgrade to Iron Armor (4 Diamond) and better tools
-*   **Map Control**: Secure public Diamond and Emerald generators
-*   **Bed Defense**: Use obsidian and blast-proof glass to protect both beds
-*   **Coordinate Attacks**: Split your team - attack one arena while defending the other
-
-### Late Game (24-30 minutes)
-*   **Full Upgrades**: Max out Protection and Sharpness if possible
-*   **Best Equipment**: Get Diamond Armor (10 Emerald) and Diamond tools
-*   **Eliminate Teams**: Focus on completely eliminating teams (both beds + all players)
-*   **Portal Control**: Secure your portals - they're your lifeline
-*   **Resource Hoarding**: Stock up on blocks, TNT, and Golden Apples
-
-### Final Phase (30+ minutes)
-*   **Survival Mode**: All beds are destroyed - every death is permanent!
-*   **Play Defensive**: Avoid unnecessary risks
-*   **Sudden Death (36m+)**: Watch out for charged creepers everywhere
-*   **End Game**: Eliminate remaining players to win
-
-## 🛡️ Defensive Tips
-
-### Bed Protection Strategies
-1.   **Layer Defense**: Surround beds with multiple layers (Wool → Terracotta → End Stone → Obsidian)
-2.   **Blast-Proof Glass**: Use for windows - you can see attackers but they can't explode through
-3.   **Trap Chambers**: Create narrow corridors with TNT traps
-4.   **Water Defense**: Place water near beds to slow TNT explosions
-5.   **Team Chest**: Use the team ender chest to share resources between dimensions
-
-### Arena-Specific Defense
-*   **Overworld**: Build upward and create sky bridges for quick rotation
-*   **Nether**: Use the terrain - lava and natural structures provide cover
-*   **Portal Protection**: Never leave portals undefended - they're invasion routes!
-
-## ⚔️ Offensive Tips
-
-### Raiding Enemy Bases
-*   **Scout First**: Use invisibility potions to check enemy defenses
-*   **Bring Resources**: At least 64 blocks, TNT (3-5), and a good sword
-*   **Bridge Building**: Use Bridge Eggs for quick access across gaps
-*   **TNT Placement**: Place TNT adjacent to beds, then light and run
-*   **Fireball Strategy**: Launch fireballs from a distance to break outer defenses
-*   **Ender Pearl Escape**: Keep an ender pearl for emergency escape after breaking a bed
-
-### Team Coordination
-*   **Split Attacks**: Attack both arenas simultaneously to divide enemy forces
-*   **Fake Rushes**: Send one player to distract while another goes for the bed
-*   **Resource Sharing**: Use team ender chest to distribute diamonds and emeralds
-*   **Communication**: Call out enemy positions and bed status constantly
-
 ## ❓ Frequently Asked Questions
 
 ### Q: Can I break my own bed?
@@ -334,11 +273,12 @@ Events occur at specific times during the match to speed up gameplay and force a
 
 ### Q: What happens to my items when I die?
 **A:** 
-*   **Keep on death** (if bed is alive): Permanent armor (chainmail/iron/diamond), your current sword tier, tool upgrades
-*   **Drop on death**: Blocks, resources (iron, gold, etc.), consumables, arrows, special items
-*   **Tool progression saved**: Your pickaxe/axe tier is remembered - you respawn with your current tier
-*   **Sword saved**: You respawn with your current sword tier (stone/iron/diamond)
-*   **Armor stays**: Purchased armor remains equipped after respawn (if bed is alive)
+*   **Currency drops**: All resources (iron, gold, diamond, emerald, quartz, netherite) drop on the ground
+*   **Inventory cleared**: All other items vanish (blocks, consumables, arrows, special items)
+*   **Armor vanishes**: All armor is removed - you must repurchase armor after respawning
+*   **Tools downgrade**: Sword, pickaxe, and axe each downgrade by 1 tier (e.g., iron sword → stone sword)
+*   **Shears persist**: If you owned shears, you keep them on respawn
+*   **Minimum tier**: Tools won't downgrade below tier 1 (wooden pickaxe/axe, wooden sword)
 
 ### Q: Can I change teams after the game starts?
 **A:** No. Team selection is locked once the game begins. Choose carefully!
@@ -399,24 +339,6 @@ Events occur at specific times during the match to speed up gameplay and force a
 *   **Gold Generators**: 4 generators in Nether arena (shared)
 *   **Emerald Generators**: 2 generators in Overworld arena (shared)
 *   **Netherite Generators**: 2 generators in Nether arena (shared)
-
-## 🏆 Pro Tips
-
-1.   **Early Diamond Rush**: Sprint to public Diamond generators immediately at game start
-2.   **Portal Camping**: Hiding near enemy portals can catch players off-guard
-3.   **Resource Management**: Keep 16+ blocks on your hotbar at all times
-4.   **Golden Apple Timing**: Eat Golden Apples **before** engaging in combat for absorption
-5.   **Bed Defense Priority**: Protect Nether bed first - it's often less defended
-6.   **Tool Efficiency**: A Diamond Pickaxe (Eff III) breaks obsidian in ~2 seconds - worth the investment!
-7.   **Water Bucket Clutch**: Always keep a water bucket for fall damage prevention
-8.   **Sponge Usage**: Sponges can quickly remove enemy water defenses
-9.   **Bow Spam**: Bows with Power + Punch can knock enemies off bridges and into voids
-10.  **Emergency Bridge Egg**: Keep one Bridge Egg for emergency escapes across large gaps
-11.  **Bridge Egg Colors**: Bridge Eggs automatically place wool in your team's color (Red/Blue/Green/Yellow wool)
-12.  **Bridge Path**: The egg builds 2 blocks wide as it flies, creating a stable platform
-13.  **Map Restoration**: Don't worry about leaving blocks everywhere - the map auto-restores between games
-14.  **Team Ender Chest**: Store valuable items (diamonds, emeralds) in the team chest to share with teammates
-15.  **Forge Priority**: Always upgrade forge first - passive income is crucial for long-term advantage
 
 ---
 
