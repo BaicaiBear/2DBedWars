@@ -2,6 +2,14 @@
 
 Welcome to **2-Dimensional BedWars**, a unique twist on the classic minigame where you must defend bases in two parallel dimensions simultaneously!
 
+## 🔑 Key Differences from Traditional BedWars
+
+*   **Dual Arenas**: You have bases in TWO dimensions (Overworld & Nether)
+*   **Death Swap**: Dying swaps you to the other dimension
+*   **Split Resources**: Different resources in each arena
+*   **Both Beds Matter**: Teams aren't eliminated until BOTH beds are destroyed
+*   **Portal Travel**: Instant teleportation between your bases
+
 ## 🌌 The Concept: Split Worlds
 The game takes place in a world split into two distinct arenas. You are not just fighting on one front; you are fighting on two.
 
@@ -175,14 +183,16 @@ Events occur at specific times during the match to speed up gameplay and force a
 
 | Item                  | Cost         | Notes                                          |
 | :-------------------- | :----------- | :--------------------------------------------- |
-| **Stone Sword**       | 10 Quartz    | Tier 2 weapon                                  |
-| **Iron Sword**        | 64 Quartz    | Tier 3 weapon, expensive but powerful          |
-| **Diamond Sword**     | 6 Netherite  | Tier 4 weapon, ultimate melee damage           |
+| **Stone Sword**       | 10 Quartz    | Tier 2 weapon (upgrades your wooden sword)     |
+| **Iron Sword**        | 64 Quartz    | Tier 3 weapon (upgrades previous sword)        |
+| **Diamond Sword**     | 6 Netherite  | Tier 4 weapon (upgrades previous sword)        |
 | **Knockback Stick**   | 4 Gold       | Stick with Knockback enchantment for pushing   |
 | **Bow**               | 32 Quartz    | Basic ranged weapon                            |
 | **Bow (Power I)**     | 3 Gold       | Enhanced damage bow                            |
 | **Bow (Pow I, Pun I)**| 6 Gold       | Power + Punch combo bow                        |
 | **Arrow** (6)         | 6 Quartz     | Ammunition for bows                            |
+
+**Note**: You start with a wooden sword. Purchasing swords auto-upgrades your current sword!
 
 ### 🛡️ Armor (Permanent Upgrades)
 
@@ -198,18 +208,20 @@ Events occur at specific times during the match to speed up gameplay and force a
 
 **Pickaxes** (Progressive tiers - each unlocks the next):
 *   **Wood Pickaxe (Efficiency I)** - Tier 1: 10 Iron
-*   **Stone Pickaxe (Efficiency I)** - Tier 2: 10 Iron
-*   **Iron Pickaxe (Efficiency II)** - Tier 3: 2 Diamond
-*   **Diamond Pickaxe (Efficiency III)** - Tier 4: 6 Emerald
+*   **Stone Pickaxe (Efficiency I)** - Tier 2: 10 Iron (auto-upgrade previous)
+*   **Iron Pickaxe (Efficiency II)** - Tier 3: 2 Diamond (auto-upgrade previous)
+*   **Diamond Pickaxe (Efficiency III)** - Tier 4: 6 Emerald (auto-upgrade previous)
 
 **Axes** (Progressive tiers):
 *   **Wood Axe (Efficiency I)** - Tier 1: 10 Iron
-*   **Stone Axe (Efficiency II)** - Tier 2: 10 Iron
-*   **Iron Axe (Efficiency II)** - Tier 3: 2 Diamond
-*   **Diamond Axe (Efficiency III)** - Tier 4: 6 Emerald
+*   **Stone Axe (Efficiency II)** - Tier 2: 10 Iron (auto-upgrade previous)
+*   **Iron Axe (Efficiency II)** - Tier 3: 2 Diamond (auto-upgrade previous)
+*   **Diamond Axe (Efficiency III)** - Tier 4: 6 Emerald (auto-upgrade previous)
 
 **Other Tools**:
 *   **Shears**: 20 Quartz - Break blocks faster (leaves, wool, etc.)
+
+**Important**: Tools automatically upgrade when you purchase a higher tier! You don't need to keep the old tool.
 
 ### 🧪 Potions & Consumables
 
@@ -321,7 +333,12 @@ Events occur at specific times during the match to speed up gameplay and force a
 **A:** No! The game prevents you from breaking your team's beds. Only enemies can destroy them.
 
 ### Q: What happens to my items when I die?
-**A:** You **drop all items** except permanent armor (if your bed is alive). Tools, weapons, and resources are lost on death.
+**A:** 
+*   **Keep on death** (if bed is alive): Permanent armor (chainmail/iron/diamond), your current sword tier, tool upgrades
+*   **Drop on death**: Blocks, resources (iron, gold, etc.), consumables, arrows, special items
+*   **Tool progression saved**: Your pickaxe/axe tier is remembered - you respawn with your current tier
+*   **Sword saved**: You respawn with your current sword tier (stone/iron/diamond)
+*   **Armor stays**: Purchased armor remains equipped after respawn (if bed is alive)
 
 ### Q: Can I change teams after the game starts?
 **A:** No. Team selection is locked once the game begins. Choose carefully!
