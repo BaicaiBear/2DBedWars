@@ -55,7 +55,8 @@ The game automatically detects the mode based on team selections:
 *   You'll be teleported to your team's spawn point in one of the arenas
 
 **Step 6: Game Begins!**
-*   You spawn with a wooden sword and a shop item (paper)
+*   You spawn with a wooden sword
+*   **Right-click the Shop NPC** (Villager/Piglin) to buy items
 *   Resource generators start producing materials
 *   Defend your beds and attack enemy teams!
 
@@ -69,18 +70,20 @@ The game automatically detects the mode based on team selections:
 
 ## ⚔️ Core Mechanics
 
-### Death Swap & Respawn System
-Using a custom respawn mechanic, **death is a portal**.
--   If you die in the **Overworld**, you will respawn in the **Nether**.
--   If you die in the **Nether**, you will respawn in the **Overworld**.
+### Prioritized Respawn System
+Using a custom respawn mechanic, your respawn location is prioritized to keep you in the game as long as possible.
+
+**Respawn Priority:**
+1.  **Other Dimension**: If you die in Overworld, you respawn in Nether first (if bed exists).
+2.  **Same Dimension**: If the other bed is destroyed, you respawn in the same dimension (if bed exists).
+3.  **Elimination**: If **BOTH** beds are destroyed, you are eliminated!
 
 **Respawn Rules:**
 *   **5-second cooldown**: After death, you wait 5 seconds before respawning
-*   **Target bed must exist**: If your bed in the target dimension is destroyed, you cannot respawn there
-*   **Both beds destroyed**: If both of your team's beds are destroyed, your next death is permanent (you become a spectator)
+*   **Prioritized Target**: Always tries to send you to the *other* arena first to swap defenders.
 *   **Team elimination**: A team is eliminated when both beds are destroyed AND all players are dead
 
-This mechanic allows strategic dimension switching but requires defending both bases!
+This mechanic ensures you can still fight even if one base is lost!
 
 ### Portal Travel
 Vanilla Nether Portals are your gateways. Walking into a portal will instantly teleport you between your team's Overworld base and Nether base. 
@@ -106,6 +109,21 @@ Before each game starts, the arenas are automatically restored:
 *   **Countdown**: Once restored, a countdown begins before the game starts
 
 This ensures every game starts with a fresh, clean arena!
+
+### Public Center Portal
+
+A **Public Nether Portal** is located at the center of each arena (Overworld and Nether).
+*   **Function**: Instantly teleports you to the center of the *other* arena.
+*   **Timing**: It opens during specific events for 30 seconds (at 7:00, 15:00, 20:00) and permanently after 30:05.
+*   **Strategy**: Use it to quickly invade the enemy dimension without needing a personal portal!
+
+### Bed & Respawn Anchor Mechanics
+Two types of beds require different strategies to destroy:
+*   **Overworld Bed**: Standard Bed. Can be broken by hand or any tool.
+*   **Nether Bed (Respawn Anchor)**: **Reinforced Defense!**
+    *   **Immune to Explosions**: Cannot be blown up by fireballs or TNT.
+    *   **Tool Requirement**: Enemy players MUST use an **Iron Pickaxe (Tier 2) or better** to break it.
+    *   **Team Protection**: You cannot break your own team's anchor.
 
 ### Scoreboard
 
@@ -204,16 +222,16 @@ Resources spawn at public locations in the middle of each arena.
 
 Events occur at specific times during the match to speed up gameplay and force action.
 
-| Time     | Event                  | Effect                                                        |
-| :------- | :--------------------- | :------------------------------------------------------------ |
-| **0:00** | **Game Start**         | Team Generator at Level 0: Iron 3/2s                          |
-| **6:00** | **Diamond II**         | Diamond & Gold generators upgrade to 23s spawn rate           |
-| **12:00**| **Emerald II**         | Emerald & Netherite generators upgrade to 40s spawn rate      |
-| **18:00**| **Diamond III**        | Diamond & Gold generators upgrade to 15s spawn rate (MAX)     |
-| **24:00**| **Emerald III**        | Emerald & Netherite generators upgrade to 30s spawn rate (MAX)|
-| **30:00**| **Bed Destruction**    | 🔥 ALL remaining beds are destroyed automatically!            |
-| **36:00**| **Sudden Death**       | ⚡ Charged creepers spawn continuously in both arenas!        |
-| **42:00**| **Game End**           | Game ends, winner determined by tiebreakers if multiple teams remain |
+| Time      | Event               | Effect                                                               |
+| :-------- | :------------------ | :------------------------------------------------------------------- |
+| **0:00**  | **Game Start**      | Team Generator at Level 0: Iron 3/2s                                 |
+| **6:00**  | **Diamond II**      | Diamond & Gold generators upgrade to 23s spawn rate                  |
+| **12:00** | **Emerald II**      | Emerald & Netherite generators upgrade to 40s spawn rate             |
+| **18:00** | **Diamond III**     | Diamond & Gold generators upgrade to 15s spawn rate (MAX)            |
+| **24:00** | **Emerald III**     | Emerald & Netherite generators upgrade to 30s spawn rate (MAX)       |
+| **30:00** | **Bed Destruction** | 🔥 ALL remaining beds are destroyed automatically!                    |
+| **36:00** | **Sudden Death**    | ⚡ Charged creepers spawn continuously in both arenas!                |
+| **42:00** | **Game End**        | Game ends, winner determined by tiebreakers if multiple teams remain |
 
 **Strategy Notes:**
 *   Rush for early kills before Diamond II (first 6 minutes)
@@ -225,39 +243,39 @@ Events occur at specific times during the match to speed up gameplay and force a
 
 ### 🧱 Building Blocks
 
-| Item                    | Cost         | Notes                                                  |
-| :---------------------- | :----------- | :----------------------------------------------------- |
-| **Wool** (16)           | 8 Iron       | Quick and cheap building material                      |
-| **Terracotta** (16)     | 12 Iron      | More durable than wool                                 |
-| **Ladder** (16)         | 4 Iron       | Essential for vertical movement                        |
-| **Wood Planks** (16)    | 16 Iron      | Balanced cost and durability                           |
-| **Cherry Leaves** (16)  | 4 Quartz     | Camouflage blocks available in Nether                  |
-| **Blast-Proof Glass** (8) | 12 Quartz | **Special**: 100% immune to ALL explosions (including Sudden Death!) |
-| **End Stone** (12)      | 24 Quartz    | Strong defense block                                   |
-| **Obsidian** (4)        | 4 Netherite  | Nearly indestructible, excellent bed defense           |
+| Item                      | Cost        | Notes                                                                |
+| :------------------------ | :---------- | :------------------------------------------------------------------- |
+| **Wool** (16)             | 8 Iron      | Quick and cheap building material                                    |
+| **Terracotta** (16)       | 12 Iron     | More durable than wool                                               |
+| **Ladder** (16)           | 4 Iron      | Essential for vertical movement                                      |
+| **Wood Planks** (16)      | 16 Iron     | Balanced cost and durability                                         |
+| **Cherry Leaves** (16)    | 4 Quartz    | Camouflage blocks available in Nether                                |
+| **Blast-Proof Glass** (8) | 12 Quartz   | **Special**: 100% immune to ALL explosions (including Sudden Death!) |
+| **End Stone** (12)        | 24 Quartz   | Strong defense block                                                 |
+| **Obsidian** (4)          | 4 Netherite | Nearly indestructible, excellent bed defense                         |
 
 ### ⚔️ Weapons & Combat
 
-| Item                  | Cost         | Notes                                          |
-| :-------------------- | :----------- | :--------------------------------------------- |
-| **Stone Sword**       | 10 Quartz    | Tier 2 weapon (upgrades your wooden sword)     |
-| **Iron Sword**        | 64 Quartz    | Tier 3 weapon (upgrades previous sword)        |
-| **Diamond Sword**     | 6 Netherite  | Tier 4 weapon (upgrades previous sword)        |
-| **Knockback Stick**   | 4 Gold       | Stick with Knockback enchantment for pushing   |
-| **Bow**               | 32 Quartz    | Basic ranged weapon                            |
-| **Bow (Power I)**     | 3 Gold       | Enhanced damage bow                            |
-| **Bow (Pow I, Pun I)**| 6 Gold       | Power + Punch combo bow                        |
-| **Arrow** (6)         | 6 Quartz     | Ammunition for bows                            |
+| Item                   | Cost        | Notes                                        |
+| :--------------------- | :---------- | :------------------------------------------- |
+| **Stone Sword**        | 10 Quartz   | Tier 2 weapon (upgrades your wooden sword)   |
+| **Iron Sword**         | 64 Quartz   | Tier 3 weapon (upgrades previous sword)      |
+| **Diamond Sword**      | 6 Netherite | Tier 4 weapon (upgrades previous sword)      |
+| **Knockback Stick**    | 4 Gold      | Stick with Knockback enchantment for pushing |
+| **Bow**                | 32 Quartz   | Basic ranged weapon                          |
+| **Bow (Power I)**      | 3 Gold      | Enhanced damage bow                          |
+| **Bow (Pow I, Pun I)** | 6 Gold      | Power + Punch combo bow                      |
+| **Arrow** (6)          | 6 Quartz    | Ammunition for bows                          |
 
 **Note**: You start with a wooden sword. Purchasing swords auto-upgrades your current sword!
 
 ### 🛡️ Armor (Must Repurchase)
 
-| Item                | Cost        | Effect                                            |
-| :------------------ | :---------- | :------------------------------------------------ |
-| **Chainmail Armor** | 32 Iron     | Basic protection set                              |
-| **Iron Armor**      | 4 Diamond   | Better protection                                 |
-| **Diamond Armor**   | 10 Emerald  | Best armor set                                    |
+| Item                | Cost       | Effect               |
+| :------------------ | :--------- | :------------------- |
+| **Chainmail Armor** | 32 Iron    | Basic protection set |
+| **Iron Armor**      | 4 Diamond  | Better protection    |
+| **Diamond Armor**   | 10 Emerald | Best armor set       |
 
 **Important**: Armor **vanishes on death**! You must repurchase it after respawning.
 
@@ -282,23 +300,23 @@ Events occur at specific times during the match to speed up gameplay and force a
 
 ### 🧪 Potions & Consumables
 
-| Item                         | Cost        | Effect                               |
-| :--------------------------- | :---------- | :----------------------------------- |
-| **Golden Apple**             | 2 Gold      | Instant healing + absorption         |
-| **Speed Potion** (45s)       | 1 Emerald   | Speed II for fast movement           |
-| **Jump Boost Potion** (45s)  | 1 Emerald   | Jump Boost IV for high jumps         |
-| **Invisibility Potion** (30s)| 2 Netherite | Turn invisible for stealth attacks   |
+| Item                          | Cost        | Effect                             |
+| :---------------------------- | :---------- | :--------------------------------- |
+| **Golden Apple**              | 2 Gold      | Instant healing + absorption       |
+| **Speed Potion** (45s)        | 1 Emerald   | Speed II for fast movement         |
+| **Jump Boost Potion** (45s)   | 1 Emerald   | Jump Boost IV for high jumps       |
+| **Invisibility Potion** (30s) | 2 Netherite | Turn invisible for stealth attacks |
 
 ### 🧨 Special Items
 
-| Item                 | Cost        | Special Mechanics                                           |
-| :------------------- | :---------- | :---------------------------------------------------------- |
-| **Bridge Egg**       | 1 Emerald   | Throws egg that builds a **colored wool bridge** (matches your team) in its path      |
-| **Fireball**         | 32 Iron     | Launches a ghast-like explosive fireball                    |
-| **TNT**              | 1 Gold      | Auto-ignites when placed (4-second fuse)                    |
-| **Ender Pearl**      | 2 Netherite | Teleport to where it lands                                  |
-| **Water Bucket**     | 12 Iron     | Reusable water source for MLG saves                         |
-| **Sponge** (4)       | 48 Iron     | Remove water quickly                                        |
+| Item             | Cost        | Special Mechanics                                                                |
+| :--------------- | :---------- | :------------------------------------------------------------------------------- |
+| **Bridge Egg**   | 1 Emerald   | Throws egg that builds a **colored wool bridge** (matches your team) in its path |
+| **Fireball**     | 32 Iron     | Launches a ghast-like explosive fireball                                         |
+| **TNT**          | 1 Gold      | Auto-ignites when placed (4-second fuse)                                         |
+| **Ender Pearl**  | 2 Netherite | Teleport to where it lands                                                       |
+| **Water Bucket** | 12 Iron     | Reusable water source for MLG saves                                              |
+| **Sponge** (4)   | 48 Iron     | Remove water quickly                                                             |
 
 ### 💎 Team Upgrades (Shared)
 
@@ -322,6 +340,11 @@ Events occur at specific times during the match to speed up gameplay and force a
 *   **Level 2**: 6 Gold - Haste II effect (MAX)
 
 **Team Upgrades are permanent for the entire team once purchased!**
+
+### 3. Equipment & Combat
+- **Unbreakable Gear**: All tools and armor purchased from the shop are **unbreakable**. You don't need to worry about durability!
+- **Weapons**: Swords (Stone, Iron, Diamond) are available.
+- **Armor**: You spawn with Leather Armor (Team Color). Upgrades (Iron, Diamond) apply permanently to the team/player.
 
 ## ❓ FAQ
 
@@ -367,6 +390,7 @@ Events occur at specific times during the match to speed up gameplay and force a
 *   **Player-placed blocks**: Can be destroyed by explosions
 *   **Blast-Proof Glass**: NEVER destroyed by any explosion (special)
 *   **Beds**: Can be destroyed by explosions
+*   **Respawn Anchors (Nether Base)**: Immune to explosions (Blast-Proof)
 *   **Sudden Death Exception**: During Sudden Death, charged creepers can destroy everything including map blocks!
 
 ### Q: How do team upgrades work?

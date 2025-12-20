@@ -16,6 +16,11 @@
         "dx": 82,
         "dy": -20,
         "dz": 0
+      },
+      "shopNPC": {
+        "dx": 68,
+        "dy": -18,
+        "dz": 2
       }
     },
     "team2": {
@@ -28,6 +33,11 @@
         "dx": -82,
         "dy": -20,
         "dz": 0
+      },
+      "shopNPC": {
+        "dx": -64,
+        "dy": -18,
+        "dz": 2
       }
     },
     "team3": {
@@ -40,6 +50,11 @@
         "dx": 0,
         "dy": -20,
         "dz": 82
+      },
+      "shopNPC": {
+        "dx": 2,
+        "dy": -18,
+        "dz": 68
       }
     },
     "team4": {
@@ -52,6 +67,11 @@
         "dx": 0,
         "dy": -20,
         "dz": -82
+      },
+      "shopNPC": {
+        "dx": 2,
+        "dy": -18,
+        "dz": -64
       }
     }
   },
@@ -105,6 +125,7 @@
       }
     }
   },
+  "centerPortalOffsetY": -19,
   "ironGenerator": {
     "amount": 1,
     "delaySeconds": 0.5,
@@ -241,7 +262,7 @@
     {
       "dx": -29,
       "dy": -18,
-      "dz": 31
+      "dz": -31
     }
   ],
   "arena1EmeraldGenerators": [
@@ -275,7 +296,7 @@
     {
       "dx": -29,
       "dy": -18,
-      "dz": 31
+      "dz": -31
     }
   ],
   "arena2NetheriteGenerators": [

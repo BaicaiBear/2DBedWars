@@ -1,19 +1,19 @@
 package top.bearcabbage.twodimensional_bedwars.mechanic;
 
 import java.util.ArrayList;
-
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
+import net.minecraft.util.Formatting;
 import top.bearcabbage.twodimensional_bedwars.api.ITeam;
 import top.bearcabbage.twodimensional_bedwars.component.Arena;
 import top.bearcabbage.twodimensional_bedwars.component.BedWarsTeam;
 import top.bearcabbage.twodimensional_bedwars.component.OreGenerator;
-import net.minecraft.util.Formatting;
 
 public class GamePlayingTask {
     private static final double KD_RATIO_EPSILON = 0.0001;
@@ -98,6 +98,39 @@ public class GamePlayingTask {
                             Text.translatable("two-dimensional-bedwars.event.emerald_iii").formatted(Formatting.GREEN));
                 }));
 
+
+        // Portal Events
+        
+        // 7:00 Portal Open I (30s)
+        events.add(new GameEvent(Text.translatable("two-dimensional-bedwars.event_name.portal_open_1"),
+                420, (world) -> {
+                     arena.setCenterPortalState(world, true);
+                }));
+        events.add(new GameEvent(Text.translatable("two-dimensional-bedwars.event_name.portal_close"),
+                450, (world) -> {
+                     arena.setCenterPortalState(world, false);
+                }));
+
+        // 15:00 Portal Open II (30s)
+        events.add(new GameEvent(Text.translatable("two-dimensional-bedwars.event_name.portal_open_2"),
+                900, (world) -> {
+                     arena.setCenterPortalState(world, true);
+                }));
+        events.add(new GameEvent(Text.translatable("two-dimensional-bedwars.event_name.portal_close"),
+                930, (world) -> {
+                     arena.setCenterPortalState(world, false);
+                }));
+
+        // 20:00 Portal Open III (30s)
+        events.add(new GameEvent(Text.translatable("two-dimensional-bedwars.event_name.portal_open_3"),
+                1200, (world) -> {
+                     arena.setCenterPortalState(world, true);
+                }));
+        events.add(new GameEvent(Text.translatable("two-dimensional-bedwars.event_name.portal_close"),
+                1230, (world) -> {
+                     arena.setCenterPortalState(world, false);
+                }));
+                
         // |床自毁|所有队伍未被摧毁的床自动摧毁|开局30分钟后|6：00|
         events.add(new GameEvent(Text.translatable("two-dimensional-bedwars.event_name.bed_destruction"),
                 config.eventSettings.bedDestructionSeconds, (world) -> {
@@ -111,6 +144,12 @@ public class GamePlayingTask {
                     arena.broadcastToGame(world.getServer(),
                             Text.translatable("two-dimensional-bedwars.event.bed_destruction").formatted(Formatting.RED,
                                     Formatting.BOLD));
+                }));
+
+        // 30:05 Portal Persistent Open
+        events.add(new GameEvent(Text.translatable("two-dimensional-bedwars.event_name.portal_persistent"),
+                1805, (world) -> {
+                     arena.setCenterPortalState(world, true);
                 }));
 
         // |末影龙出没|末影龙开始在地图中游荡并攻击玩家|开局36分钟后|6：00|
@@ -519,7 +558,10 @@ public class GamePlayingTask {
         if (bedPos == null)
             return;
 
-        if (!(world.getBlockState(bedPos).getBlock() instanceof net.minecraft.block.BedBlock)) {
+        net.minecraft.block.Block block = world.getBlockState(bedPos).getBlock();
+        boolean valid = (block instanceof net.minecraft.block.BedBlock) || (block == net.minecraft.block.Blocks.RESPAWN_ANCHOR);
+
+        if (!valid) {
             team.setBedDestroyed(arenaId, true);
             Text arenaName = arenaId == 1 ? Text.translatable("two-dimensional-bedwars.arena.overworld")
                     : Text.translatable("two-dimensional-bedwars.arena.nether");
@@ -536,11 +578,9 @@ public class GamePlayingTask {
             // Physically break the bed
             net.minecraft.util.math.BlockPos bedPos = team.getBedLocation(arenaId);
             if (bedPos != null) {
-                // Break block (drop=false, entity=null)
-                // Only break if it is actually a bed to be polite, though event implies
-                // destruction.
                 net.minecraft.block.BlockState state = world.getBlockState(bedPos);
-                if (state.getBlock() instanceof net.minecraft.block.BedBlock) {
+                 net.minecraft.block.Block block = state.getBlock();
+                if ((block instanceof net.minecraft.block.BedBlock) || (block == net.minecraft.block.Blocks.RESPAWN_ANCHOR)) {
                     world.breakBlock(bedPos, false);
                 }
             }

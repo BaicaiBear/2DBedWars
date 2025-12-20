@@ -1,35 +1,3 @@
-/bedwars team 1
-/bedwars start
-/bedwars team 1
-/bedwars team 2
-/bedwars team 1
-/bedwars join
-/bedwars start
-/bedwars team 1
-/bedwars stop
-/bedwars start
-/bedwars stop
-/bedwars join
-/bedwars stop
-/bedwars start
-/bedwars join
-/bedwars team 2
-/bedwars start
-/bedwars join
-/bedwars leave
-/bedwars join
-/bedwars spectate
-/bedwars leave
-/bedwars spectate
-/bedwars leave
-/bedwars join
-/bedwars leave
-/bedwars join
-/bedwars leave
-/experience add @a 10000
-/bedwars join
-/give @a minecraft:diamond_helmet
-/bedwars join
 /bedwars start
 /bedwars join
 /bedwars leave
@@ -48,3 +16,35 @@
 /bedwars join
 /bedwars start
 /bedwars join
+/bedwars start
+/bedwars leave
+/bedwars join
+/bedwars start
+/bedwars join
+/gamemode creative
+/tick rate 2000
+/tick rate 20
+/bedwars join
+/bedwars start
+/bedwars join
+/bedwars start
+/bedwars join
+/tp ~400 ~ ~
+/give @a minecraft:wooden_pickaxe
+/tick rate 200
+/give @a minecraft:diamond_pickaxe
+/bedwars join
+/bedwars start
+/bedwars join
+/give @a minecraft:diamond_pickaxe
+/give @a minecraft:iron_pickaxe
+/gamemode creative
+/gamemode survival
+/bedwars join
+/gamemode creative
+/gamemode survival
+/tick rate 200
+/tick rate 2000
+/tick rate 20
+/tick rate 2000
+/tick rate 20

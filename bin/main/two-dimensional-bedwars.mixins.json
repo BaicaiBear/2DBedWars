@@ -4,7 +4,10 @@
 	"compatibilityLevel": "JAVA_21",
 	"mixins": [
 		"ServerWorldMixin",
-		"EggEntityMixin"
+		"EggEntityMixin",
+		"ScoreboardInvoker",
+		"RespawnAnchorHardnessMixin",
+		"UnbreakableItemMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

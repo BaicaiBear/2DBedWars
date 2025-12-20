@@ -21,6 +21,7 @@ public class GameConfig {
     public ArenaDetail arena2 = new ArenaDetail("Quartz");
     public BaseOffsets baseOffsets = new BaseOffsets();
     public RestoreConfig arenaRestoreConfig = new RestoreConfig();
+    public int centerPortalOffsetY = -19; // Offset Y-level from arena center for the public portal
 
     public GeneratorSetting ironGenerator = new GeneratorSetting(1, 0.5, 48);
     public GeneratorSetting goldGenerator = new GeneratorSetting(1, 2.0, 12);
@@ -116,7 +117,7 @@ public class GameConfig {
         list.add(new Offset(31, -18, 29));
         list.add(new Offset(29, -18, -31));
         list.add(new Offset(-31, -18, 29));
-        list.add(new Offset(-29, -18, 31));
+        list.add(new Offset(-29, -18, -31));
         return list;
     }
 
@@ -132,7 +133,7 @@ public class GameConfig {
         list.add(new Offset(31, -18, 29));
         list.add(new Offset(29, -18, -31));
         list.add(new Offset(-31, -18, 29));
-        list.add(new Offset(-29, -18, 31));
+        list.add(new Offset(-29, -18, -31));
         return list;
     }
 
@@ -161,10 +162,16 @@ public class GameConfig {
     public static class TeamConfig {
         public Offset spawn;
         public Offset generator;
+        public Offset shopNPC;
 
         public TeamConfig(Offset spawn, Offset generator) {
+            this(spawn, generator, new Offset(spawn.dx + 2, spawn.dy, spawn.dz + 2));
+        }
+
+        public TeamConfig(Offset spawn, Offset generator, Offset shopNPC) {
             this.spawn = spawn;
             this.generator = generator;
+            this.shopNPC = shopNPC;
         }
     }
 
@@ -410,9 +417,16 @@ public class GameConfig {
             arena2 = new ArenaDetail("Quartz");
         if (baseOffsets == null)
             baseOffsets = new BaseOffsets();
+        
+        // Deep check for added fields (like shopNPC) that might be missing in old configs
+        fixTeamConfig(baseOffsets.team1);
+        fixTeamConfig(baseOffsets.team2);
+        fixTeamConfig(baseOffsets.team3);
+        fixTeamConfig(baseOffsets.team4);
+
         if (arenaRestoreConfig == null)
             arenaRestoreConfig = new RestoreConfig();
-
+        
         if (ironGenerator == null)
             ironGenerator = new GeneratorSetting(1, 0.5, 48);
         if (goldGenerator == null)
@@ -444,6 +458,18 @@ public class GameConfig {
             publicGeneratorLevels = defaultPublicGeneratorLevels();
         if (eventSettings == null)
             eventSettings = new EventSettings();
+    }
+    
+    private void fixTeamConfig(TeamConfig tc) {
+        if (tc == null) return;
+        if (tc.shopNPC == null && tc.spawn != null) {
+            tc.shopNPC = new Offset(tc.spawn.dx > 0 ? tc.spawn.dx - 3 : tc.spawn.dx + 3, tc.spawn.dy, tc.spawn.dz); 
+            // Default shift slightly towards center or just away from spawn. 
+            // Original logic in constructor was dx+2, dy, dz+2. 
+            // Let's stick closer to a safe default: 3 blocks away on X.
+        } else if (tc.shopNPC == null) {
+            tc.shopNPC = new Offset(5, 0, 5);
+        }
     }
 
     public static void save() {

@@ -7,7 +7,6 @@ import java.util.Map;
 import java.util.UUID;
 
 import net.minecraft.entity.effect.StatusEffectInstance;
-import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.util.math.BlockPos;
 import top.bearcabbage.twodimensional_bedwars.api.ITeam;
 
@@ -369,7 +368,7 @@ public class BedWarsTeam implements ITeam {
         top.bearcabbage.twodimensional_bedwars.config.GameConfig config = top.bearcabbage.twodimensional_bedwars.config.GameConfig
                 .getInstance();
 
-        // --- Arena 1 Setup ---
+        // --- Arena 1 Setup (Overworld) ---
         // Spawn: Center + Spawn Offset
         top.bearcabbage.twodimensional_bedwars.config.GameConfig.Offset sOff = teamConfig.spawn;
         BlockPos spawn1 = new BlockPos(c1.x + sOff.dx, c1.y + sOff.dy, c1.z + sOff.dz);
@@ -380,23 +379,30 @@ public class BedWarsTeam implements ITeam {
         top.bearcabbage.twodimensional_bedwars.config.GameConfig.Offset gOff = teamConfig.generator;
         BlockPos gen1 = new BlockPos(c1.x + gOff.dx, c1.y + gOff.dy, c1.z + gOff.dz);
         team.addGenerator(gen1);
-        // Live generators managed by Forge Level
 
-        // Base Blocks (Bed, No Platform)
+        // Shop NPC: Center + Shop Offset
+        top.bearcabbage.twodimensional_bedwars.config.GameConfig.Offset shopOff = teamConfig.shopNPC;
+        BlockPos shop1 = new BlockPos(c1.x + shopOff.dx, c1.y + shopOff.dy, c1.z + shopOff.dz);
+        spawnShopKeeper(world, shop1, "Villager");
+
+        // Base Blocks (Bed)
         net.minecraft.block.Block bedBlock = getBedBlock(name);
         net.minecraft.util.math.Direction facing = getFacingTowardsCenter(sOff.dx, sOff.dz);
-        setupTeamBase(world, team, bedBlock, facing, spawn1);
+        setupTeamBase(world, team, bedBlock, facing, spawn1, false);
 
-        // --- Arena 2 Setup ---
+        // --- Arena 2 Setup (Nether) ---
         BlockPos spawn2 = new BlockPos(c2.x + sOff.dx, c2.y + sOff.dy, c2.z + sOff.dz);
         team.setSpawnPoint(2, spawn2);
         team.setBedLocation(2, spawn2);
 
         BlockPos gen2 = new BlockPos(c2.x + gOff.dx, c2.y + gOff.dy, c2.z + gOff.dz);
         team.addGenerator(gen2);
-        // Live generators managed by Forge Level
 
-        setupTeamBase(world, team, bedBlock, facing, spawn2);
+        BlockPos shop2 = new BlockPos(c2.x + shopOff.dx, c2.y + shopOff.dy, c2.z + shopOff.dz);
+        spawnShopKeeper(world, shop2, "Piglin");
+
+        // Base Blocks (Anchor)
+        setupTeamBase(world, team, net.minecraft.block.Blocks.RESPAWN_ANCHOR, facing, spawn2, true);
 
         // Initialize Generators
         team.setForgeLevel(0);
@@ -404,7 +410,32 @@ public class BedWarsTeam implements ITeam {
         return team;
     }
 
-    // Removed unused helpers: getSettingForResource, getItemForResource
+    private static void spawnShopKeeper(net.minecraft.server.world.ServerWorld world, BlockPos pos, String type) {
+        net.minecraft.entity.mob.MobEntity entity; 
+        if (type.equals("Piglin")) {
+            entity = net.minecraft.entity.EntityType.PIGLIN.create(world, net.minecraft.entity.SpawnReason.COMMAND);
+            if (entity instanceof net.minecraft.entity.mob.PiglinEntity piglin) {
+                piglin.setImmuneToZombification(true);
+            }
+        } else {
+            entity = net.minecraft.entity.EntityType.VILLAGER.create(world, net.minecraft.entity.SpawnReason.COMMAND);
+        }
+
+        if (entity != null) {
+            entity.refreshPositionAndAngles(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5, 0, 0);
+            entity.setAiDisabled(true);
+            entity.setInvulnerable(true);
+            entity.setCustomName(net.minecraft.text.Text.translatable("two-dimensional-bedwars.entity.shop"));
+            entity.setCustomNameVisible(true);
+            entity.setSilent(true);
+            entity.setPersistent();
+            
+            // Add identifying tag
+            entity.addCommandTag("BedWarsShop");
+            
+            world.spawnEntity(entity);
+        }
+    }
 
     private static net.minecraft.block.Block getBedBlock(String name) {
         if ("Red".equalsIgnoreCase(name))
@@ -427,18 +458,23 @@ public class BedWarsTeam implements ITeam {
     }
 
     private static void setupTeamBase(net.minecraft.server.world.ServerWorld world, BedWarsTeam team,
-            net.minecraft.block.Block bedBlock, net.minecraft.util.math.Direction facing, BlockPos spawnPos) {
-        // Bed Foot at Spawn, Head towards center (Facing)
-        BlockPos footPos = spawnPos;
-        BlockPos headPos = spawnPos.offset(facing);
+            net.minecraft.block.Block block, net.minecraft.util.math.Direction facing, BlockPos spawnPos, boolean isAnchor) {
+        if (isAnchor) {
+            // Respawn Anchor (Single Block)
+            world.setBlockState(spawnPos, block.getDefaultState().with(net.minecraft.block.RespawnAnchorBlock.CHARGES, 4));
+        } else {
+            // Bed (Head + Foot)
+            BlockPos footPos = spawnPos;
+            BlockPos headPos = spawnPos.offset(facing);
 
-        world.setBlockState(headPos,
-                bedBlock.getDefaultState()
-                        .with(net.minecraft.block.BedBlock.PART, net.minecraft.block.enums.BedPart.HEAD)
-                        .with(net.minecraft.block.BedBlock.FACING, facing));
-        world.setBlockState(footPos,
-                bedBlock.getDefaultState()
-                        .with(net.minecraft.block.BedBlock.PART, net.minecraft.block.enums.BedPart.FOOT)
-                        .with(net.minecraft.block.BedBlock.FACING, facing));
+            world.setBlockState(headPos,
+                    block.getDefaultState()
+                            .with(net.minecraft.block.BedBlock.PART, net.minecraft.block.enums.BedPart.HEAD)
+                            .with(net.minecraft.block.BedBlock.FACING, facing));
+            world.setBlockState(footPos,
+                    block.getDefaultState()
+                            .with(net.minecraft.block.BedBlock.PART, net.minecraft.block.enums.BedPart.FOOT)
+                            .with(net.minecraft.block.BedBlock.FACING, facing));
+        }
     }
 }

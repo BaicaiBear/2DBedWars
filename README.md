@@ -12,11 +12,13 @@ The game world is split into two halves:
 2.  **Nether Arena (Hell)**: `x >= 200`
 
 ### Key Features
-*   **Dual Bases**: Every team has a bed in both the Overworld and the Nether. You must protect **both** to survive.
-*   **Death Swap**: Dying in one dimension respawns you in the other.
+*   **Dual Bases**: Every team has a Bed (Overworld) and a Respawn Anchor (Nether). You must protect **both** to survive.
+*   **Prioritized Respawn**: Dying respawns you at the other arena first. If that bed is gone, you respawn at the same arena. Elimination only occurs if **both** are destroyed.
+*   **NPC Shops**: Trade with Villagers (Overworld) and Piglins (Nether) at your base to buy items.
 *   **Resource Split**:
     *   **Overworld**: Iron, Diamond, Emerald.
     *   **Nether**: Quartz, Gold, Netherite.
+*   **Public Portal**: A central Nether Portal opens periodically (7:00, 15:00, 20:00, 30:05) for fast travel between arenas.
 *   **Portal Travel**: Seamlessly travel between your bases using Nether Portals.
 *   **Server-Side Only**: No client mod required.
 

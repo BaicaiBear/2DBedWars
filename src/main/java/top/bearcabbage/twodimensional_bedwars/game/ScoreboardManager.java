@@ -1,5 +1,8 @@
 package top.bearcabbage.twodimensional_bedwars.game;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import net.minecraft.scoreboard.ScoreboardCriterion;
 import net.minecraft.scoreboard.ScoreboardDisplaySlot;
 import net.minecraft.scoreboard.ScoreboardObjective;
@@ -7,10 +10,8 @@ import net.minecraft.scoreboard.ServerScoreboard;
 import net.minecraft.scoreboard.Team;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.text.Text;
-import java.util.HashMap;
-import java.util.Map;
-import top.bearcabbage.twodimensional_bedwars.component.Arena;
 import top.bearcabbage.twodimensional_bedwars.api.ITeam;
+import top.bearcabbage.twodimensional_bedwars.component.Arena;
 
 public class ScoreboardManager {
     private static final String OBJECTIVE_NAME = "bedwars_game";
@@ -111,8 +112,7 @@ public class ScoreboardManager {
             if (i < 1)
                 continue;
             String token = LINE_TOKENS[i - 1];
-            net.minecraft.scoreboard.ScoreboardHelper.resetScore(server.getScoreboard(),
-                    net.minecraft.scoreboard.ScoreHolder.fromName(token), objective);
+            ((top.bearcabbage.twodimensional_bedwars.mixin.ScoreboardInvoker)server.getScoreboard()).invokeResetScore(net.minecraft.scoreboard.ScoreHolder.fromName(token), objective);
         }
 
         // 4. Ensure Active Lines Have Scores

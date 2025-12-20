@@ -50,6 +50,7 @@
     "two-dimensional-bedwars.event_name.bed_destruction": "Bed Destruction",
     "two-dimensional-bedwars.event_name.sudden_death": "Sudden Death",
     "two-dimensional-bedwars.event_name.game_end": "Game End",
+    "two-dimensional-bedwars.event.game_end": "Game Ended",
     "two-dimensional-bedwars.event_name.waiting": "Waiting",
     "two-dimensional-bedwars.event_name.ended": "Ended",
     "two-dimensional-bedwars.command.join_success": "§aJoined the game! Select a team with /bedwars team <id>",
@@ -110,5 +111,15 @@
     "two-dimensional-bedwars.command.join_fail_already": "You have already joined the game!",
     "two-dimensional-bedwars.backup.restore_fail": "§c[BedWars] Failed to restore lobby backup! You have been safe-teleported.",
     "two-dimensional-bedwars.event.no_winner": "Game ended with no winner!",
-    "two-dimensional-bedwars.event.draw": "Game ended in a draw! Multiple teams tied!"
+    "two-dimensional-bedwars.event.draw": "Game ended in a draw! Multiple teams tied!",
+    "two-dimensional-bedwars.shop.item.tnt": "TNT",
+    "two-dimensional-bedwars.block.anchor_protection": "§cYou need a Tier 2+ Pickaxe (Iron/Diamond/Netherite) to break Respawn Anchors!",
+    "two-dimensional-bedwars.entity.shop": "§eItem Shop",
+    "two-dimensional-bedwars.event.portal_open": "§dThe Central Portal has opened!",
+    "two-dimensional-bedwars.event.portal_close": "§cThe Central Portal has closed!",
+    "two-dimensional-bedwars.event_name.portal_persistent": "Portal Stay Open",
+    "two-dimensional-bedwars.event_name.portal_open_1": "Portal Phase I",
+    "two-dimensional-bedwars.event_name.portal_open_2": "Portal Phase II",
+    "two-dimensional-bedwars.event_name.portal_open_3": "Portal Phase III",
+    "two-dimensional-bedwars.event_name.portal_close": "Portal Closing"
 }
