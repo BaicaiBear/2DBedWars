@@ -155,6 +155,11 @@ public class TwoDimensionalBedWars implements ModInitializer {
                     if (!world.isClient && player instanceof ServerPlayerEntity serverPlayer) {
                         if (ArenaManager.getInstance().getArena() instanceof Arena gameArena) {
                             if (gameArena.getStatus() == GameStatus.PLAYING) {
+                                // Restriction: Participants Only
+                                if (!gameArena.getParticipantUUIDs().contains(serverPlayer.getUuid())) {
+                                    return ActionResult.PASS;
+                                }
+
                                 if (gameArena.attemptBreakBed(serverPlayer, pos)) {
                                     return ActionResult.SUCCESS; // Handled (Instant Break)
                                 }
@@ -176,13 +181,16 @@ public class TwoDimensionalBedWars implements ModInitializer {
                     }
 
                     // 2. If Player is NOT in the Game World, allow everything.
-                    // (Assuming lobby is a different world, or at least consistent with gameWorld
-                    // tracking)
                     if (gameArena.getGameWorld() != null && player.getWorld() != gameArena.getGameWorld()) {
                         return true;
                     }
 
-                    // 3. Game is PLAYING and Player is in Game World.
+                    // 3. Restriction: Participants Only (NEW)
+                    if (!gameArena.getParticipantUUIDs().contains(serverPlayer.getUuid())) {
+                        return true;
+                    }
+
+                    // 4. Game is PLAYING and Player is in Game World.
                     // Apply Restrictions.
                     if (gameArena.getData().isBlockPlayerPlaced(pos)
                             || state.getBlock() instanceof net.minecraft.block.BedBlock) {
@@ -201,6 +209,11 @@ public class TwoDimensionalBedWars implements ModInitializer {
             if (!world.isClient && player instanceof ServerPlayerEntity serverPlayer) {
                 if (ArenaManager.getInstance().getArena() instanceof Arena gameArena) {
                     if (gameArena.getStatus() == GameStatus.PLAYING) {
+                        // Restriction: Participants Only
+                        if (!gameArena.getParticipantUUIDs().contains(serverPlayer.getUuid())) {
+                            return ActionResult.PASS;
+                        }
+
                         net.minecraft.block.BlockState state = world.getBlockState(hitResult.getBlockPos());
 
                         if (state.getBlock() == net.minecraft.block.Blocks.CRAFTING_TABLE) {
@@ -209,7 +222,13 @@ public class TwoDimensionalBedWars implements ModInitializer {
                             return ActionResult.FAIL;
                         }
 
+                        // Block Respawn Anchor Interaction to prevent explosion
+                        if (state.getBlock() == net.minecraft.block.Blocks.RESPAWN_ANCHOR) {
+                            return ActionResult.FAIL;
+                        }
+
                         if (state.getBlock() == net.minecraft.block.Blocks.ENDER_CHEST) {
+
                             if (gameArena.handleEnderChest(serverPlayer))
                                 return ActionResult.SUCCESS;
                         }
@@ -239,28 +258,6 @@ public class TwoDimensionalBedWars implements ModInitializer {
             return ActionResult.PASS;
         });
 
-        net.fabricmc.fabric.api.event.player.UseItemCallback.EVENT.register((player, world, hand) -> {
-            if (!world.isClient && player instanceof ServerPlayerEntity serverPlayer) {
-                net.minecraft.item.ItemStack stack = player.getStackInHand(hand);
-                if (stack.getItem() == net.minecraft.item.Items.PAPER &&
-                        stack.getName().getString().contains("Shop")) {
-
-                    if (ArenaManager.getInstance().getArena() instanceof Arena gameArena) {
-                        if (gameArena.getStatus() != GameStatus.PLAYING)
-                            return ActionResult.PASS;
-
-                        java.util.List<top.bearcabbage.twodimensional_bedwars.config.GameConfig.ShopEntry> shopList = top.bearcabbage.twodimensional_bedwars.config.GameConfig
-                                .getInstance().shop;
-
-                        serverPlayer.openHandledScreen(
-                                new top.bearcabbage.twodimensional_bedwars.screen.screens.BedWarsShopScreen(shopList));
-                        return ActionResult.SUCCESS;
-                    }
-                }
-            }
-            return ActionResult.PASS;
-        });
-
         net.fabricmc.fabric.api.event.player.UseEntityCallback.EVENT
                 .register((player, world, hand, entity, hitResult) -> {
                     if (!world.isClient && player instanceof ServerPlayerEntity serverPlayer
@@ -270,8 +267,9 @@ public class TwoDimensionalBedWars implements ModInitializer {
                                 if (gameArena.getStatus() != GameStatus.PLAYING)
                                     return ActionResult.PASS;
 
-                                // Check if player is a participant
-                                if (!gameArena.getParticipantUUIDs().contains(player.getUuid())) {
+                                // Check if player is an alive participant
+                                if (!gameArena.getParticipantUUIDs().contains(player.getUuid())
+                                        || player.isSpectator()) {
                                     return ActionResult.PASS;
                                 }
 
