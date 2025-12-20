@@ -2,6 +2,8 @@
 
 Welcome to **2-Dimensional BedWars**, a unique twist on the classic minigame where you must defend bases in two parallel dimensions simultaneously!
 
+**What makes this different?** Unlike traditional BedWars, your team must master the art of **dual-dimension warfare**. You'll split between the Overworld (desert) and Nether (hellscape) arenas, each with its own unique resources and threats. Success requires smart coordination—distribute your players strategically to defend both beds, gather dimension-specific materials (Iron/Diamond in Overworld, Quartz/Netherite in Nether), and launch synchronized attacks across dimensions. When enemies strike one arena, will you have enough defenders in the other? This constant tactical challenge of resource management and team positioning makes every match a thrilling test of strategy and teamwork!
+
 ## 📋 Table of Contents
 
 ### Essential Information
