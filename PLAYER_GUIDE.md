@@ -374,7 +374,7 @@ Events occur at specific times during the match to speed up gameplay and force a
 **A:** Visit the Nether arena's central Netherite generators. They spawn every 55s (Tier I), 40s (Tier II), or 30s (Tier III).
 
 ### Q: Can I place crafting tables or furnaces?
-**A:** No, crafting is **completely disabled** in-game. The crafting grid won't work. All items must be purchased from the shop.
+**A:** Crafting is **completely disabled** - using crafting tables won't work. Furnaces aren't available in the shop as placeable items (they only appear as icons for the Team Ore Generator upgrade). All items must be purchased from the shop.
 
 ### Q: Can I sleep in beds during the game?
 **A:** No, you cannot sleep in beds or set spawn points. Respawn points are fixed at your team's bases.
