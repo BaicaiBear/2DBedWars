@@ -281,6 +281,7 @@ jobs:
 | Version  | Status      | Properties File        | Notes                          |
 |----------|-------------|------------------------|--------------------------------|
 | 1.21.8   | ✅ Supported | `versions/1.21.8.properties` | Primary development version    |
+| 1.21.4   | ✅ Supported | `versions/1.21.4.properties` | Example additional version     |
 
 To add more versions, follow the steps above and update this table.
 
