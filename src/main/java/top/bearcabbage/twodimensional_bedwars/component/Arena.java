@@ -398,15 +398,17 @@ public class Arena implements IArena {
                 gamePlayingTask = new GamePlayingTask(this);
             }
             gamePlayingTask.run(this.gameWorld != null ? this.gameWorld : world);
-            
+
             // NPC LookAt Logic (Every 10 ticks)
             if (world.getTime() % 10 == 0 && this.gameWorld != null) {
                 // Villagers
-                for (net.minecraft.entity.passive.VillagerEntity entity : this.gameWorld.getEntitiesByType(net.minecraft.entity.EntityType.VILLAGER, e -> e.getCommandTags().contains("BedWarsShop"))) {
+                for (net.minecraft.entity.passive.VillagerEntity entity : this.gameWorld.getEntitiesByType(
+                        net.minecraft.entity.EntityType.VILLAGER, e -> e.getCommandTags().contains("BedWarsShop"))) {
                     lookAtNearestPlayer(entity);
                 }
                 // Piglins
-                for (net.minecraft.entity.mob.PiglinEntity entity : this.gameWorld.getEntitiesByType(net.minecraft.entity.EntityType.PIGLIN, e -> e.getCommandTags().contains("BedWarsShop"))) {
+                for (net.minecraft.entity.mob.PiglinEntity entity : this.gameWorld.getEntitiesByType(
+                        net.minecraft.entity.EntityType.PIGLIN, e -> e.getCommandTags().contains("BedWarsShop"))) {
                     lookAtNearestPlayer(entity);
                 }
             }
@@ -462,27 +464,30 @@ public class Arena implements IArena {
 
             if (inPortal) {
                 // Determine portal logic based on cooldown
-                // If player has cooldown (just teleported), prevent vanilla logic but SKIP our logic
-                // Vanilla logic requires max portal time, setting cooldown resets that timer, blocking it effectively.
+                // If player has cooldown (just teleported), prevent vanilla logic but SKIP our
+                // logic
+                // Vanilla logic requires max portal time, setting cooldown resets that timer,
+                // blocking it effectively.
                 if (player.getPortalCooldown() > 0) {
-                     // We just ensure vanilla doesn't trigger by keeping the timer incomplete? 
-                     // Actually, if we do nothing, cooldown ticks down. Once 0, we can TP again.
-                     // To BLOCK vanilla, we rely on the fact that we teleport INSTANTLY when cooldown is 0.
-                     // If cooldown > 0, we just wait.
-                     continue;
+                    // We just ensure vanilla doesn't trigger by keeping the timer incomplete?
+                    // Actually, if we do nothing, cooldown ticks down. Once 0, we can TP again.
+                    // To BLOCK vanilla, we rely on the fact that we teleport INSTANTLY when
+                    // cooldown is 0.
+                    // If cooldown > 0, we just wait.
+                    continue;
                 }
 
                 // Check for Center Portal (based on proximity to center)
                 GameConfig.MapPoint c1 = config.arenaRestoreConfig.arena1Bounds.center;
                 GameConfig.MapPoint c2 = config.arenaRestoreConfig.arena2Bounds.center;
-                
+
                 double portalY1 = c1.y + config.centerPortalOffsetY;
                 double portalY2 = c2.y + config.centerPortalOffsetY;
 
                 // Allow a small radius around center for the portal
                 double d1 = player.getPos().squaredDistanceTo(c1.x, portalY1, c1.z);
                 double d2 = player.getPos().squaredDistanceTo(c2.x, portalY2, c2.z);
-                
+
                 // Radius of 5 blocks should cover the portal frame
                 if (d1 < 25 || d2 < 25) {
                     // This IS a Center Portal
@@ -494,16 +499,16 @@ public class Arena implements IArena {
                         // In Arena 2 -> Go to Arena 1 Center
                         targetPos = new BlockPos(c1.x, (int) portalY1, c1.z);
                     }
-                    
-                    // Instant Teleport, No Bed Check
-                     player.teleport(world, targetPos.getX() + 0.5, targetPos.getY(),
-                                    targetPos.getZ() + 0.5,
-                                    java.util.EnumSet.noneOf(net.minecraft.network.packet.s2c.play.PositionFlag.class),
-                                    player.getYaw(), player.getPitch(), false);
-                     player.playSound(net.minecraft.sound.SoundEvents.BLOCK_PORTAL_TRAVEL, 0.5f, 1.0f);
-                     // Set Cooldown 5s
-                     player.setPortalCooldown(100);
-                     return; 
+
+                    // Instant Teleport, No Bed Check, +1 Y Offset
+                    player.teleport(world, targetPos.getX() + 0.5, targetPos.getY() + 1.0,
+                            targetPos.getZ() + 0.5,
+                            java.util.EnumSet.noneOf(net.minecraft.network.packet.s2c.play.PositionFlag.class),
+                            player.getYaw(), player.getPitch(), false);
+                    player.playSound(net.minecraft.sound.SoundEvents.BLOCK_PORTAL_TRAVEL, 0.5f, 1.0f);
+                    // Set Cooldown 5s
+                    player.setPortalCooldown(100);
+                    return;
                 }
 
                 // Standard Base Team Portal Logic
@@ -519,18 +524,12 @@ public class Arena implements IArena {
                     if (bwTeam.isBedDestroyed(targetArena)) {
                         player.sendMessage(Text.translatable("two-dimensional-bedwars.arena.teleport_fail_bed"), true);
                         // Prevent Spam
-                         player.setPortalCooldown(100);
+                        player.setPortalCooldown(100);
                     } else {
-                        BlockPos targetSpawn = bwTeam.getSpawnPoint(targetArena);
-                        if (targetSpawn != null) {
-                            player.teleport(world, targetSpawn.getX() + 0.5, targetSpawn.getY(),
-                                    targetSpawn.getZ() + 0.5,
-                                    java.util.EnumSet.noneOf(net.minecraft.network.packet.s2c.play.PositionFlag.class),
-                                    player.getYaw(), player.getPitch(), false);
-                            player.playSound(net.minecraft.sound.SoundEvents.ENTITY_ENDERMAN_TELEPORT, 1.0f, 1.0f);
-                            // Set Cooldown 5s
-                             player.setPortalCooldown(100);
-                        }
+                        teleportToTeamSpawn(player, targetArena);
+                        player.playSound(net.minecraft.sound.SoundEvents.ENTITY_ENDERMAN_TELEPORT, 1.0f, 1.0f);
+                        // Set Cooldown 5s
+                        player.setPortalCooldown(100);
                     }
                 }
             }
@@ -541,25 +540,25 @@ public class Arena implements IArena {
         // Build 5x5 Crying Obsidian Frames at Centers
         // Frame: 5x5. Inner: 3x3.
         // Orientation: Along X axis (facing Z)
-        
+
         GameConfig.MapPoint c1 = config.arenaRestoreConfig.arena1Bounds.center;
         GameConfig.MapPoint c2 = config.arenaRestoreConfig.arena2Bounds.center;
-        
+
         buildPortalFrame(world, new BlockPos(c1.x, c1.y + config.centerPortalOffsetY, c1.z));
         buildPortalFrame(world, new BlockPos(c2.x, c2.y + config.centerPortalOffsetY, c2.z));
     }
-    
+
     private void buildPortalFrame(ServerWorld world, BlockPos center) {
         // Center of the base. Relative to center, let's build axis X.
-        // x-2 to x+2 (5 blocks wide). y to y+4 (5 blocks high).
+        // x-2 to x+2 (5 blocks wide). y to y+5 (6 blocks high).
         // Crying Obsidian Frame.
-        
+
         BlockState frame = net.minecraft.block.Blocks.CRYING_OBSIDIAN.getDefaultState();
-        
+
         for (int z = -2; z <= 2; z++) {
-            for (int h = 0; h <= 4; h++) {
+            for (int h = 0; h <= 5; h++) {
                 BlockPos pos = center.add(0, h, z);
-                boolean isEdge = (z == -2 || z == 2 || h == 0 || h == 4);
+                boolean isEdge = (z == -2 || z == 2 || h == 0 || h == 5);
                 if (isEdge) {
                     world.setBlockState(pos, frame);
                     // Protect it?
@@ -570,35 +569,41 @@ public class Arena implements IArena {
             }
         }
     }
-    
+
     public void setCenterPortalState(ServerWorld world, boolean open) {
-        BlockState inner = open ? net.minecraft.block.Blocks.NETHER_PORTAL.getDefaultState().with(net.minecraft.block.NetherPortalBlock.AXIS, net.minecraft.util.math.Direction.Axis.Z) 
-                                : net.minecraft.block.Blocks.AIR.getDefaultState();
-        
+        BlockState inner = open
+                ? net.minecraft.block.Blocks.NETHER_PORTAL.getDefaultState()
+                        .with(net.minecraft.block.NetherPortalBlock.AXIS, net.minecraft.util.math.Direction.Axis.Z)
+                : net.minecraft.block.Blocks.AIR.getDefaultState();
+
         GameConfig.MapPoint c1 = config.arenaRestoreConfig.arena1Bounds.center;
         GameConfig.MapPoint c2 = config.arenaRestoreConfig.arena2Bounds.center;
-        
+
         int y1 = c1.y + config.centerPortalOffsetY;
         int y2 = c2.y + config.centerPortalOffsetY;
-        
+
         updatePortalState(world, new BlockPos(c1.x, y1, c1.z), inner);
         updatePortalState(world, new BlockPos(c2.x, y2, c2.z), inner);
-        
+
         if (open) {
-            broadcastToGame(world.getServer(), Text.translatable("two-dimensional-bedwars.event.portal_open").formatted(Formatting.LIGHT_PURPLE));
+            broadcastToGame(world.getServer(),
+                    Text.translatable("two-dimensional-bedwars.event.portal_open").formatted(Formatting.LIGHT_PURPLE));
             // Play Sound
-            world.playSound(null, c1.x, y1, c1.z, net.minecraft.sound.SoundEvents.BLOCK_END_PORTAL_SPAWN, net.minecraft.sound.SoundCategory.BLOCKS, 100f, 1f);
-            world.playSound(null, c2.x, y2, c2.z, net.minecraft.sound.SoundEvents.BLOCK_END_PORTAL_SPAWN, net.minecraft.sound.SoundCategory.BLOCKS, 100f, 1f);
+            world.playSound(null, c1.x, y1, c1.z, net.minecraft.sound.SoundEvents.BLOCK_END_PORTAL_SPAWN,
+                    net.minecraft.sound.SoundCategory.BLOCKS, 100f, 1f);
+            world.playSound(null, c2.x, y2, c2.z, net.minecraft.sound.SoundEvents.BLOCK_END_PORTAL_SPAWN,
+                    net.minecraft.sound.SoundCategory.BLOCKS, 100f, 1f);
         } else {
-             broadcastToGame(world.getServer(), Text.translatable("two-dimensional-bedwars.event.portal_close").formatted(Formatting.RED));
+            broadcastToGame(world.getServer(),
+                    Text.translatable("two-dimensional-bedwars.event.portal_close").formatted(Formatting.RED));
         }
     }
-    
+
     private void updatePortalState(ServerWorld world, BlockPos center, BlockState state) {
         for (int z = -1; z <= 1; z++) {
-             for (int h = 1; h <= 3; h++) {
-                 world.setBlockState(center.add(0, h, z), state);
-             }
+            for (int h = 1; h <= 4; h++) {
+                world.setBlockState(center.add(0, h, z), state);
+            }
         }
     }
 
@@ -630,8 +635,6 @@ public class Arena implements IArena {
             setupCenterPortals(gameWorld); // Place portal frames after restore
             this.mapRestoreComplete = true; // Signals tick -> beginMatch -> initialize
         });
-
-
 
         // Removed: Logic that auto-added all online players.
         // Players must now explicitly join via /bedwars join or /bedwars team.
@@ -701,7 +704,7 @@ public class Arena implements IArena {
             UUID uuid = entry.getKey();
             ITeam team = entry.getValue();
             ServerPlayerEntity player = world.getServer().getPlayerManager().getPlayer(uuid);
-            if (player != null && team instanceof BedWarsTeam bwTeam) {
+            if (player != null && team instanceof BedWarsTeam) {
                 // Create BedWarsPlayer
                 BedWarsPlayer bwPlayer = new BedWarsPlayer(uuid, team);
                 bwPlayer.setState(1); // Alive
@@ -712,10 +715,9 @@ public class Arena implements IArena {
 
                 player.getInventory().clear();
 
-                BlockPos spawn = bwTeam.getSpawnPoint(1); // Start in Arena 1
-                player.teleport(gameWorld, spawn.getX() + 0.5, spawn.getY(), spawn.getZ() + 0.5,
-                        java.util.EnumSet.noneOf(net.minecraft.network.packet.s2c.play.PositionFlag.class), 0, 0,
-                        false);
+                teleportToTeamSpawn(player, 1); // Start in Arena 1 with offset
+
+                player.changeGameMode(GameMode.SURVIVAL);
                 player.changeGameMode(GameMode.SURVIVAL);
                 player.setHealth(player.getMaxHealth());
                 player.getHungerManager().setFoodLevel(20);
@@ -816,7 +818,7 @@ public class Arena implements IArena {
         world.getGameRules().get(net.minecraft.world.GameRules.DO_WEATHER_CYCLE).set(false, world.getServer());
         // Natural Regeneration Disabled
         world.getGameRules().get(net.minecraft.world.GameRules.NATURAL_REGENERATION).set(false, world.getServer());
-        
+
         world.setTimeOfDay(6000);
         world.setWeather(0, 0, false, false);
 
@@ -928,71 +930,81 @@ public class Arena implements IArena {
         }
     }
 
-    public boolean handleBlockBreak(ServerPlayerEntity player, BlockPos pos, BlockState state) {
-        if (status != GameStatus.PLAYING)
-            return true;
-
+    /**
+     * Attempts to break a bed/anchor at the given position.
+     * 
+     * @return true if the block was identified as a bed/anchor and processed
+     *         (whether broken or denied). false if ignored.
+     */
+    public boolean attemptBreakBed(ServerPlayerEntity player, BlockPos pos) {
+        BlockState state = player.getWorld().getBlockState(pos);
         boolean isBed = state.getBlock() instanceof BedBlock;
         boolean isAnchor = state.getBlock() == net.minecraft.block.Blocks.RESPAWN_ANCHOR;
 
-        if (isBed || isAnchor) {
-            ITeam playerTeam = getTeam(player);
+        if (!isBed && !isAnchor)
+            return false;
 
-            // Logic: 
-            // 1. Identify Owner Team
-            // 2. If Owner == PlayerTeam -> FAIL (Cannot break own bed)
-            // 3. If Anchor -> Check Tool (Lv3+)
-            // 4. Break
+        ITeam team = getTeam(player);
+        if (!(team instanceof BedWarsTeam playerTeam)) {
+            return false;
+        }
 
-            for (ITeam checkTeam : teams) {
-                if (checkTeam instanceof BedWarsTeam checkBwTeam) {
-                     boolean isTarget = false;
-                     int targetArena = 0;
-                     
-                     // Check Arena 1
-                     BlockPos bed1 = checkBwTeam.getBedLocation(1);
-                     if (bed1 != null && (bed1.equals(pos) || bed1.getSquaredDistance(pos) < 4)) {
-                         isTarget = true;
-                         targetArena = 1;
-                     }
-                     
-                     // Check Arena 2
-                     BlockPos bed2 = checkBwTeam.getBedLocation(2);
-                     if (!isTarget && bed2 != null && (bed2.equals(pos) || bed2.getSquaredDistance(pos) < 4)) {
-                         isTarget = true;
-                         targetArena = 2;
-                     }
-                     
-                     if (isTarget) {
-                         // 1. Own Bed Check
-                         if (checkTeam == playerTeam) {
-                             player.sendMessage(Text.translatable("two-dimensional-bedwars.arena.break_own_bed"), true);
-                             return false; 
-                         }
-                         
-                         // 2. Anchor Tool Check
-                         // Lv3+ = Diamond(3), Netherite(4). (Iron is 2, Stone 1, Wood 0)
-                         // User said "lv3+ pickaxe". Diamond is Tier 3.
-                         if (isAnchor) {
-                             net.minecraft.item.Item item = player.getMainHandStack().getItem();
-                             // Allow Iron, Diamond or Netherite
-                             boolean canBreak = (item == net.minecraft.item.Items.IRON_PICKAXE ||
-                                                 item == net.minecraft.item.Items.DIAMOND_PICKAXE || 
-                                                 item == net.minecraft.item.Items.NETHERITE_PICKAXE);
-                             if (!canBreak) {
-                                  player.sendMessage(Text.translatable("two-dimensional-bedwars.block.anchor_protection"), true);
-                                  return false;
-                             }
-                         }
-                         
-                         // 3. Process Break
-                         player.getWorld().breakBlock(pos, false);
-                         return processBedBreak(player, playerTeam, checkBwTeam, targetArena);
-                     }
+        for (ITeam checkTeam : teams) {
+            if (checkTeam instanceof BedWarsTeam checkBwTeam) {
+                boolean isTarget = false;
+                int targetArena = 0;
+
+                // Check Arena 1
+                BlockPos bed1 = checkBwTeam.getBedLocation(1);
+                if (bed1 != null && (bed1.equals(pos) || bed1.getSquaredDistance(pos) < 4)) {
+                    isTarget = true;
+                    targetArena = 1;
+                }
+
+                // Check Arena 2
+                BlockPos bed2 = checkBwTeam.getBedLocation(2);
+                if (!isTarget && bed2 != null && (bed2.equals(pos) || bed2.getSquaredDistance(pos) < 4)) {
+                    isTarget = true;
+                    targetArena = 2;
+                }
+
+                if (isTarget) {
+                    // 1. Own Bed Check
+                    if (checkTeam == playerTeam) {
+                        player.sendMessage(Text.translatable("two-dimensional-bedwars.arena.break_own_bed"), true);
+                        return true;
+                    }
+
+                    // 2. Anchor Tool Check
+                    if (isAnchor) {
+                        net.minecraft.item.Item item = player.getMainHandStack().getItem();
+                        boolean canBreak = (item == net.minecraft.item.Items.IRON_PICKAXE ||
+                                item == net.minecraft.item.Items.DIAMOND_PICKAXE);
+                        if (!canBreak) {
+                            player.sendMessage(Text.translatable("two-dimensional-bedwars.block.anchor_protection"),
+                                    true);
+                            return true;
+                        }
+                    }
+
+                    // 3. Process Break
+                    if (isBed) {
+                        net.minecraft.util.math.Direction direction = net.minecraft.block.BedBlock
+                                .getOppositePartDirection(state);
+                        BlockPos otherPos = pos.offset(direction);
+                        if (player.getWorld().getBlockState(otherPos)
+                                .getBlock() instanceof net.minecraft.block.BedBlock) {
+                            player.getWorld().breakBlock(otherPos, false);
+                        }
+                    }
+                    player.getWorld().breakBlock(pos, false);
+
+                    processBedBreak(player, playerTeam, checkBwTeam, targetArena);
+                    return true;
                 }
             }
         }
-        return true;
+        return false;
     }
 
     private boolean processBedBreak(ServerPlayerEntity breaker, ITeam breakerTeam, BedWarsTeam bedOwnerTeam,
@@ -1076,11 +1088,11 @@ public class Arena implements IArena {
             // 1. Try Other Arena Bed
             if (!bwTeam.isBedDestroyed(otherArena)) {
                 targetArena = otherArena;
-            } 
+            }
             // 2. Try Same Arena Bed
             else if (!bwTeam.isBedDestroyed(currentArena)) {
                 targetArena = currentArena;
-            } 
+            }
             // 3. Elimination
             else {
                 eliminated = true;
@@ -1113,28 +1125,54 @@ public class Arena implements IArena {
         ServerPlayerEntity player = targetWorld.getServer().getPlayerManager().getPlayer(uuid);
         if (player != null) {
             ITeam team = playerTeamMap.get(uuid);
-            if (team instanceof BedWarsTeam bwTeam) {
+            if (team instanceof BedWarsTeam) {
                 int targetArena = respawnTargets.getOrDefault(uuid, 1);
 
-                BlockPos spawn = bwTeam.getSpawnPoint(targetArena);
-                if (spawn != null) {
-                    player.teleport(targetWorld, spawn.getX() + 0.5, spawn.getY(), spawn.getZ() + 0.5,
-                            java.util.EnumSet.noneOf(net.minecraft.network.packet.s2c.play.PositionFlag.class), 0, 0,
-                            false);
-                    player.changeGameMode(GameMode.SURVIVAL);
-                    player.setHealth(player.getMaxHealth());
+                teleportToTeamSpawn(player, targetArena);
 
-                    BedWarsPlayer bwPlayer = team.getPlayer(uuid);
-                    if (bwPlayer != null) {
-                        bwPlayer.applyTools(player);
-                    }
-                    // Shop item removed
-                    respawnTargets.remove(uuid);
+                player.changeGameMode(GameMode.SURVIVAL);
+                player.setHealth(player.getMaxHealth());
+
+                BedWarsPlayer bwPlayer = team.getPlayer(uuid);
+                if (bwPlayer != null) {
+                    bwPlayer.applyTools(player);
                 }
+                // Shop item removed
+                respawnTargets.remove(uuid);
             }
         }
     }
-    
+
+    private void teleportToTeamSpawn(ServerPlayerEntity player, int arenaId) {
+        ITeam team = playerTeamMap.get(player.getUuid());
+        if (team instanceof BedWarsTeam bwTeam) {
+            BlockPos spawn = bwTeam.getSpawnPoint(arenaId);
+            if (spawn != null) {
+                double centerX = (arenaId == 2) ? 400.0 : 0.0;
+                double centerZ = 0.0;
+
+                double dirX = centerX - spawn.getX();
+                double dirZ = centerZ - spawn.getZ();
+                double dist = Math.sqrt(dirX * dirX + dirZ * dirZ);
+
+                double finalX = spawn.getX() + 0.5;
+                double finalZ = spawn.getZ() + 0.5;
+
+                // Offset 3 blocks towards center to avoid spawning in bed shell
+                if (dist > 1.0) {
+                    finalX += (dirX / dist) * 3.0;
+                    finalZ += (dirZ / dist) * 3.0;
+                }
+
+                ServerWorld world = (gameWorld != null) ? gameWorld : (ServerWorld) player.getWorld();
+                player.teleport(world, finalX, spawn.getY(), finalZ,
+                        java.util.EnumSet.noneOf(net.minecraft.network.packet.s2c.play.PositionFlag.class),
+                        player.getYaw(), player.getPitch(),
+                        false);
+            }
+        }
+    }
+
     // Removed Give Shop Item
 
     public boolean handleEnderChest(ServerPlayerEntity player) {
@@ -1161,11 +1199,26 @@ public class Arena implements IArena {
     public boolean isSuddenDeathActive() {
         return gamePlayingTask != null && gamePlayingTask.isSuddenDeathActive();
     }
-    
+
     private void lookAtNearestPlayer(net.minecraft.entity.Entity entity) {
         net.minecraft.entity.player.PlayerEntity nearest = entity.getWorld().getClosestPlayer(entity, 10);
         if (nearest != null) {
-            entity.lookAt(net.minecraft.command.argument.EntityAnchorArgumentType.EntityAnchor.EYES, nearest.getEyePos()); // Look at EYES
+            entity.lookAt(net.minecraft.command.argument.EntityAnchorArgumentType.EntityAnchor.EYES,
+                    nearest.getEyePos()); // Look at EYES
         }
     }
+
+    public boolean handleBlockBreak(ServerPlayerEntity player, BlockPos pos, BlockState state) {
+        if (state.getBlock() instanceof BedBlock) {
+            boolean result = attemptBreakBed(player, pos);
+            return false;
+        }
+
+        if (isBlockPlayerPlaced(pos)) {
+            placedBlocks.remove(pos);
+            return true;
+        }
+        return false;
+    }
+
 }

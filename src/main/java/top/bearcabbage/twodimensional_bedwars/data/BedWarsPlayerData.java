@@ -1,8 +1,6 @@
 package top.bearcabbage.twodimensional_bedwars.data;
 
-import eu.pb4.playerdata.api.PlayerDataApi;
-import eu.pb4.playerdata.api.storage.NbtDataStorage;
-import eu.pb4.playerdata.api.storage.PlayerDataStorage;
+import top.bearcabbage.twodimensional_bedwars.TwoDimensionalBedWars;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtList;
 import net.minecraft.nbt.NbtElement;
@@ -13,20 +11,14 @@ import net.minecraft.util.Identifier;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.network.packet.s2c.play.PositionFlag;
-import java.util.EnumSet;
 
 public class BedWarsPlayerData {
 
-    // Explicitly typed storage
-    private static final PlayerDataStorage<NbtCompound> BACKUP_STORAGE = new NbtDataStorage(
-            "bedwars_backup");
-
-    static {
-        PlayerDataApi.register(BACKUP_STORAGE);
-    }
-
     public static void saveBackup(ServerPlayerEntity player) {
         NbtCompound data = new NbtCompound();
+
+        // Mark as Not Restored (Persistent Backup)
+        data.putBoolean("Restored", false);
 
         // Save Location & Dimension
         NbtCompound loc = new NbtCompound();
@@ -63,18 +55,23 @@ public class BedWarsPlayerData {
         data.putFloat("XpProgress", player.experienceProgress);
 
         // Use instance save
-        BACKUP_STORAGE.save(player, data);
+        TwoDimensionalBedWars.BACKUP_STORAGE.save(player, data);
     }
 
     public static boolean hasBackup(ServerPlayerEntity player) {
-        // load returns null if empty? Or NbtCompound?
-        // Interface says T load(...). Default impl usually returns null if not found.
-        return BACKUP_STORAGE.load(player) != null;
+        NbtCompound data = TwoDimensionalBedWars.BACKUP_STORAGE.load(player);
+        return data != null && !data.getBoolean("Restored").orElse(false);
     }
 
     public static boolean restoreBackup(ServerPlayerEntity player) {
-        NbtCompound data = BACKUP_STORAGE.load(player);
+        NbtCompound data = TwoDimensionalBedWars.BACKUP_STORAGE.load(player);
         if (data != null) {
+            // Check for previous restoration
+            if (data.getBoolean("Restored").orElse(false)) {
+                TwoDimensionalBedWars.LOGGER.warn("Restoring backup for player {} that was ALREADY marked as restored!",
+                        player.getName().getString());
+                // We proceed anyway as failsafe
+            }
             // Restore Inventory using CODEC
             if (data.contains("Inventory")) {
                 NbtElement elem = data.get("Inventory");
@@ -138,10 +135,13 @@ public class BedWarsPlayerData {
             }
 
             // Clean up
+            // Mark as Restored (Do NOT delete file)
             try {
-                BACKUP_STORAGE.save(player, null);
+                data.putBoolean("Restored", true);
+                TwoDimensionalBedWars.BACKUP_STORAGE.save(player, data);
             } catch (Exception e) {
-                // Ignore
+                TwoDimensionalBedWars.LOGGER
+                        .error("Failed to update backup status for player " + player.getName().getString(), e);
             }
             return true;
         }

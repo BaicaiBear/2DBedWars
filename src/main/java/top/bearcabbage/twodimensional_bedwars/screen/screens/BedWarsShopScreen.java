@@ -179,26 +179,44 @@ public class BedWarsShopScreen extends AbstractACScreen {
             net.minecraft.registry.RegistryWrapper.WrapperLookup registryLookup = player.getWorld()
                     .getRegistryManager();
 
+            // Imports added at the top in a separate chunk or assumed available if I can
+            // use fully qualified names.
+            // Using fully qualified names to avoid import issues for now, or I will verify
+            // imports.
+            // Actually, I should add imports to be clean. But I will use fully qualified
+            // names for the replacement content to be safe and simple in this chunk.
+
             if (entry.specialType.startsWith("POTION_")) {
                 if (entry.specialType.equals("POTION_SPEED")) {
                     stack.set(net.minecraft.component.DataComponentTypes.POTION_CONTENTS,
                             new net.minecraft.component.type.PotionContentsComponent(
-                                    java.util.Optional.of(net.minecraft.potion.Potions.SWIFTNESS),
-                                    java.util.Optional.empty(), java.util.List.of(), java.util.Optional.empty()));
+                                    java.util.Optional.empty(),
+                                    java.util.Optional.empty(),
+                                    java.util.List.of(new net.minecraft.entity.effect.StatusEffectInstance(
+                                            net.minecraft.entity.effect.StatusEffects.SPEED, 900, 1)), // 45s, Speed II
+                                    java.util.Optional.empty()));
                     stack.set(net.minecraft.component.DataComponentTypes.CUSTOM_NAME,
                             net.minecraft.text.Text.translatable("two-dimensional-bedwars.shop.potion.speed"));
                 } else if (entry.specialType.equals("POTION_JUMP")) {
                     stack.set(net.minecraft.component.DataComponentTypes.POTION_CONTENTS,
                             new net.minecraft.component.type.PotionContentsComponent(
-                                    java.util.Optional.of(net.minecraft.potion.Potions.LEAPING),
-                                    java.util.Optional.empty(), java.util.List.of(), java.util.Optional.empty()));
+                                    java.util.Optional.empty(),
+                                    java.util.Optional.empty(),
+                                    java.util.List.of(new net.minecraft.entity.effect.StatusEffectInstance(
+                                            net.minecraft.entity.effect.StatusEffects.JUMP_BOOST, 900, 3)), // 45s, Jump
+                                                                                                            // IV
+                                    java.util.Optional.empty()));
                     stack.set(net.minecraft.component.DataComponentTypes.CUSTOM_NAME,
                             net.minecraft.text.Text.translatable("two-dimensional-bedwars.shop.potion.jump"));
                 } else if (entry.specialType.equals("POTION_INVISIBILITY")) {
                     stack.set(net.minecraft.component.DataComponentTypes.POTION_CONTENTS,
                             new net.minecraft.component.type.PotionContentsComponent(
-                                    java.util.Optional.of(net.minecraft.potion.Potions.INVISIBILITY),
-                                    java.util.Optional.empty(), java.util.List.of(), java.util.Optional.empty()));
+                                    java.util.Optional.empty(),
+                                    java.util.Optional.empty(),
+                                    java.util.List.of(new net.minecraft.entity.effect.StatusEffectInstance(
+                                            net.minecraft.entity.effect.StatusEffects.INVISIBILITY, 600, 0)), // 30s,
+                                                                                                              // Invis I
+                                    java.util.Optional.empty()));
                     stack.set(net.minecraft.component.DataComponentTypes.CUSTOM_NAME,
                             net.minecraft.text.Text.translatable("two-dimensional-bedwars.shop.potion.invis"));
                 }

@@ -113,7 +113,7 @@
     "two-dimensional-bedwars.event.no_winner": "游戏结束，没有获胜者！",
     "two-dimensional-bedwars.event.draw": "游戏平局！多支队伍打成平手！",
     "two-dimensional-bedwars.shop.item.tnt": "TNT",
-    "two-dimensional-bedwars.block.anchor_protection": "§c你需要2级以上的镐（铁镐/钻石镐/下界合金镐）才能破坏重生锚！",
+    "two-dimensional-bedwars.block.anchor_protection": "§c你需要铁镐或钻石镐才能破坏重生锚！",
     "two-dimensional-bedwars.entity.shop": "§e物品商店",
     "two-dimensional-bedwars.event.portal_open": "§d中心传送门已开启！",
     "two-dimensional-bedwars.event.portal_close": "§c中心传送门已关闭！",

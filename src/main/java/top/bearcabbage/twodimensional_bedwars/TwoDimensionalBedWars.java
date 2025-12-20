@@ -2,34 +2,41 @@ package top.bearcabbage.twodimensional_bedwars;
 
 import java.util.EnumSet;
 
+import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
+import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
+import net.fabricmc.fabric.api.event.player.PlayerBlockBreakEvents;
+import net.minecraft.network.packet.s2c.play.PositionFlag;
+import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.ServerWorld;
+import net.minecraft.util.ActionResult;
+import net.minecraft.text.Text;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import net.fabricmc.api.ModInitializer;
-import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
-import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
-import net.fabricmc.fabric.api.event.player.PlayerBlockBreakEvents;
-import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
-import net.minecraft.network.packet.s2c.play.PositionFlag;
-import net.minecraft.registry.Registries;
+import eu.pb4.playerdata.api.PlayerDataApi;
+import eu.pb4.playerdata.api.storage.NbtDataStorage;
+import eu.pb4.playerdata.api.storage.PlayerDataStorage;
 import net.minecraft.registry.Registry;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.text.Text;
-import net.minecraft.util.ActionResult;
+import net.minecraft.registry.Registries;
 import net.minecraft.util.Identifier;
-import top.bearcabbage.twodimensional_bedwars.api.IArena.GameStatus;
-import top.bearcabbage.twodimensional_bedwars.command.BedWarsCommand;
-import top.bearcabbage.twodimensional_bedwars.component.Arena;
-import top.bearcabbage.twodimensional_bedwars.game.ArenaManager;
-import top.bearcabbage.twodimensional_bedwars.mechanic.CustomItemHandler;
-import top.bearcabbage.twodimensional_bedwars.world.ArenaChunkGenerator;
 import top.bearcabbage.twodimensional_bedwars.world.SplitBiomeSource;
+import top.bearcabbage.twodimensional_bedwars.world.ArenaChunkGenerator;
+import top.bearcabbage.twodimensional_bedwars.game.ArenaManager;
+import top.bearcabbage.twodimensional_bedwars.command.BedWarsCommand;
+
+import top.bearcabbage.twodimensional_bedwars.component.Arena;
+import top.bearcabbage.twodimensional_bedwars.api.IArena.GameStatus;
+import top.bearcabbage.twodimensional_bedwars.mechanic.CustomItemHandler;
+
+import net.minecraft.nbt.NbtCompound;
 
 public class TwoDimensionalBedWars implements ModInitializer {
     public static final String MOD_ID = "two-dimensional-bedwars";
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
+    public static final PlayerDataStorage<NbtCompound> BACKUP_STORAGE = new NbtDataStorage("bedwars_backup");
 
     @Override
     public void onInitialize() {
@@ -37,6 +44,8 @@ public class TwoDimensionalBedWars implements ModInitializer {
 
         Registry.register(Registries.BIOME_SOURCE, Identifier.of(MOD_ID, "split"), SplitBiomeSource.CODEC);
         Registry.register(Registries.CHUNK_GENERATOR, Identifier.of(MOD_ID, "arena"), ArenaChunkGenerator.CODEC);
+
+        PlayerDataApi.register(BACKUP_STORAGE);
 
         CustomItemHandler.init();
 
@@ -140,6 +149,21 @@ public class TwoDimensionalBedWars implements ModInitializer {
             return true;
         });
 
+        // Instant Break Logic (Re-added)
+        net.fabricmc.fabric.api.event.player.AttackBlockCallback.EVENT
+                .register((player, world, hand, pos, direction) -> {
+                    if (!world.isClient && player instanceof ServerPlayerEntity serverPlayer) {
+                        if (ArenaManager.getInstance().getArena() instanceof Arena gameArena) {
+                            if (gameArena.getStatus() == GameStatus.PLAYING) {
+                                if (gameArena.attemptBreakBed(serverPlayer, pos)) {
+                                    return ActionResult.SUCCESS; // Handled (Instant Break)
+                                }
+                            }
+                        }
+                    }
+                    return ActionResult.PASS;
+                });
+
         PlayerBlockBreakEvents.BEFORE.register((world, player, pos, state, blockEntity) -> {
             if (player.isCreative())
                 return true;
@@ -160,11 +184,8 @@ public class TwoDimensionalBedWars implements ModInitializer {
 
                     // 3. Game is PLAYING and Player is in Game World.
                     // Apply Restrictions.
-                    // 3. Game is PLAYING and Player is in Game World.
-                    // Apply Restrictions.
                     if (gameArena.getData().isBlockPlayerPlaced(pos)
-                            || state.getBlock() instanceof net.minecraft.block.BedBlock
-                            || state.getBlock() == net.minecraft.block.Blocks.RESPAWN_ANCHOR) {
+                            || state.getBlock() instanceof net.minecraft.block.BedBlock) {
                         return gameArena.handleBlockBreak(serverPlayer, pos, state);
                     } else {
                         serverPlayer.sendMessage(
@@ -200,11 +221,6 @@ public class TwoDimensionalBedWars implements ModInitializer {
                                 return ActionResult.FAIL;
                             }
                         }
-                        
-                        // Disable Respawn Anchor Interaction (prevent explode)
-                        if (state.getBlock() == net.minecraft.block.Blocks.RESPAWN_ANCHOR) {
-                            return ActionResult.FAIL;
-                        }
 
                         net.minecraft.item.ItemStack stack = player.getStackInHand(hand);
                         if (stack.getItem() instanceof net.minecraft.item.BlockItem) {
@@ -223,13 +239,13 @@ public class TwoDimensionalBedWars implements ModInitializer {
             return ActionResult.PASS;
         });
 
-        // Use Item Callback Removed (Shop Paper)
-
-        // Shop Entity Interaction
-        net.fabricmc.fabric.api.event.player.UseEntityCallback.EVENT.register((player, world, hand, entity, hitResult) -> {
+        net.fabricmc.fabric.api.event.player.UseItemCallback.EVENT.register((player, world, hand) -> {
             if (!world.isClient && player instanceof ServerPlayerEntity serverPlayer) {
-                if (entity.getCommandTags().contains("BedWarsShop")) {
-                     if (ArenaManager.getInstance().getArena() instanceof Arena gameArena) {
+                net.minecraft.item.ItemStack stack = player.getStackInHand(hand);
+                if (stack.getItem() == net.minecraft.item.Items.PAPER &&
+                        stack.getName().getString().contains("Shop")) {
+
+                    if (ArenaManager.getInstance().getArena() instanceof Arena gameArena) {
                         if (gameArena.getStatus() != GameStatus.PLAYING)
                             return ActionResult.PASS;
 
@@ -245,10 +261,32 @@ public class TwoDimensionalBedWars implements ModInitializer {
             return ActionResult.PASS;
         });
 
-        net.fabricmc.fabric.api.event.player.UseItemCallback.EVENT.register((player, world, hand) -> {
-            // Deprecated Shop Paper logic removed
-            return ActionResult.PASS;
-        });
+        net.fabricmc.fabric.api.event.player.UseEntityCallback.EVENT
+                .register((player, world, hand, entity, hitResult) -> {
+                    if (!world.isClient && player instanceof ServerPlayerEntity serverPlayer
+                            && hand == net.minecraft.util.Hand.MAIN_HAND) {
+                        if (entity.getCommandTags().contains("BedWarsShop")) {
+                            if (ArenaManager.getInstance().getArena() instanceof Arena gameArena) {
+                                if (gameArena.getStatus() != GameStatus.PLAYING)
+                                    return ActionResult.PASS;
+
+                                // Check if player is a participant
+                                if (!gameArena.getParticipantUUIDs().contains(player.getUuid())) {
+                                    return ActionResult.PASS;
+                                }
+
+                                java.util.List<top.bearcabbage.twodimensional_bedwars.config.GameConfig.ShopEntry> shopList = top.bearcabbage.twodimensional_bedwars.config.GameConfig
+                                        .getInstance().shop;
+
+                                serverPlayer.openHandledScreen(
+                                        new top.bearcabbage.twodimensional_bedwars.screen.screens.BedWarsShopScreen(
+                                                shopList));
+                                return ActionResult.SUCCESS;
+                            }
+                        }
+                    }
+                    return ActionResult.PASS;
+                });
 
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
             ServerPlayerEntity player = handler.getPlayer();

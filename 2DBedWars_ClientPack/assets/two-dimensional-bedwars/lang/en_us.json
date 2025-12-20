@@ -113,7 +113,7 @@
     "two-dimensional-bedwars.event.no_winner": "Game ended with no winner!",
     "two-dimensional-bedwars.event.draw": "Game ended in a draw! Multiple teams tied!",
     "two-dimensional-bedwars.shop.item.tnt": "TNT",
-    "two-dimensional-bedwars.block.anchor_protection": "§cYou need a Tier 2+ Pickaxe (Iron/Diamond/Netherite) to break Respawn Anchors!",
+    "two-dimensional-bedwars.block.anchor_protection": "§cYou need an Iron or Diamond Pickaxe to break Respawn Anchors!",
     "two-dimensional-bedwars.entity.shop": "§eItem Shop",
     "two-dimensional-bedwars.event.portal_open": "§dThe Central Portal has opened!",
     "two-dimensional-bedwars.event.portal_close": "§cThe Central Portal has closed!",

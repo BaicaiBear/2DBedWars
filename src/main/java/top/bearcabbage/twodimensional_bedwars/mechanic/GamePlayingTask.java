@@ -17,7 +17,7 @@ import top.bearcabbage.twodimensional_bedwars.component.OreGenerator;
 
 public class GamePlayingTask {
     private static final double KD_RATIO_EPSILON = 0.0001;
-    
+
     private final Arena arena;
 
     // Events
@@ -98,39 +98,38 @@ public class GamePlayingTask {
                             Text.translatable("two-dimensional-bedwars.event.emerald_iii").formatted(Formatting.GREEN));
                 }));
 
-
         // Portal Events
-        
+
         // 7:00 Portal Open I (30s)
         events.add(new GameEvent(Text.translatable("two-dimensional-bedwars.event_name.portal_open_1"),
                 420, (world) -> {
-                     arena.setCenterPortalState(world, true);
+                    arena.setCenterPortalState(world, true);
                 }));
         events.add(new GameEvent(Text.translatable("two-dimensional-bedwars.event_name.portal_close"),
                 450, (world) -> {
-                     arena.setCenterPortalState(world, false);
+                    arena.setCenterPortalState(world, false);
                 }));
 
         // 15:00 Portal Open II (30s)
         events.add(new GameEvent(Text.translatable("two-dimensional-bedwars.event_name.portal_open_2"),
                 900, (world) -> {
-                     arena.setCenterPortalState(world, true);
+                    arena.setCenterPortalState(world, true);
                 }));
         events.add(new GameEvent(Text.translatable("two-dimensional-bedwars.event_name.portal_close"),
                 930, (world) -> {
-                     arena.setCenterPortalState(world, false);
+                    arena.setCenterPortalState(world, false);
                 }));
 
         // 20:00 Portal Open III (30s)
         events.add(new GameEvent(Text.translatable("two-dimensional-bedwars.event_name.portal_open_3"),
                 1200, (world) -> {
-                     arena.setCenterPortalState(world, true);
+                    arena.setCenterPortalState(world, true);
                 }));
         events.add(new GameEvent(Text.translatable("two-dimensional-bedwars.event_name.portal_close"),
                 1230, (world) -> {
-                     arena.setCenterPortalState(world, false);
+                    arena.setCenterPortalState(world, false);
                 }));
-                
+
         // |床自毁|所有队伍未被摧毁的床自动摧毁|开局30分钟后|6：00|
         events.add(new GameEvent(Text.translatable("two-dimensional-bedwars.event_name.bed_destruction"),
                 config.eventSettings.bedDestructionSeconds, (world) -> {
@@ -149,7 +148,7 @@ public class GamePlayingTask {
         // 30:05 Portal Persistent Open
         events.add(new GameEvent(Text.translatable("two-dimensional-bedwars.event_name.portal_persistent"),
                 1805, (world) -> {
-                     arena.setCenterPortalState(world, true);
+                    arena.setCenterPortalState(world, true);
                 }));
 
         // |末影龙出没|末影龙开始在地图中游荡并攻击玩家|开局36分钟后|6：00|
@@ -313,14 +312,15 @@ public class GamePlayingTask {
 
         // Multiple teams alive - determine winner by tiebreakers
         BedWarsTeam winner = determineWinnerByTiebreakers(aliveTeams);
-        
+
         if (winner != null) {
             gameWinning = true;
             triggerWin(world, winner);
         } else {
             // No winner - draw
             arena.broadcastToGame(world.getServer(),
-                    Text.translatable("two-dimensional-bedwars.event.draw").formatted(Formatting.GRAY, Formatting.BOLD));
+                    Text.translatable("two-dimensional-bedwars.event.draw").formatted(Formatting.GRAY,
+                            Formatting.BOLD));
             arena.stopGame();
         }
     }
@@ -328,19 +328,19 @@ public class GamePlayingTask {
     private BedWarsTeam determineWinnerByTiebreakers(List<BedWarsTeam> teams) {
         // Defensive copy to avoid mutation of input parameter
         List<BedWarsTeam> teamsCopy = new ArrayList<>(teams);
-        
+
         // Calculate statistics once for all teams to avoid redundant iterations
         Map<BedWarsTeam, TeamStats> teamStatsMap = new HashMap<>();
         for (BedWarsTeam team : teamsCopy) {
             teamStatsMap.put(team, calculateTeamStats(team));
         }
-        
+
         // 1. Count alive players for each team
         int maxAlivePlayers = teamStatsMap.values().stream()
                 .mapToInt(stats -> stats.alivePlayers)
                 .max()
                 .orElse(0);
-        
+
         List<BedWarsTeam> topTeams = new ArrayList<>();
         for (BedWarsTeam team : teamsCopy) {
             if (teamStatsMap.get(team).alivePlayers == maxAlivePlayers) {
@@ -358,10 +358,11 @@ public class GamePlayingTask {
                 .mapToDouble(team -> teamStatsMap.get(team).kdRatio)
                 .max()
                 .orElse(0.0);
-        
+
         List<BedWarsTeam> topKdTeams = new ArrayList<>();
         for (BedWarsTeam team : topTeams) {
-            if (Math.abs(teamStatsMap.get(team).kdRatio - maxKdRatio) < KD_RATIO_EPSILON) { // Compare doubles with epsilon
+            if (Math.abs(teamStatsMap.get(team).kdRatio - maxKdRatio) < KD_RATIO_EPSILON) { // Compare doubles with
+                                                                                            // epsilon
                 topKdTeams.add(team);
             }
         }
@@ -376,7 +377,7 @@ public class GamePlayingTask {
                 .mapToInt(team -> teamStatsMap.get(team).totalKills)
                 .max()
                 .orElse(0);
-        
+
         List<BedWarsTeam> topKillTeams = new ArrayList<>();
         for (BedWarsTeam team : topKdTeams) {
             if (teamStatsMap.get(team).totalKills == maxKills) {
@@ -392,12 +393,12 @@ public class GamePlayingTask {
         // 4. All tiebreakers same - no winner (draw)
         return null;
     }
-    
+
     private TeamStats calculateTeamStats(BedWarsTeam team) {
         int alivePlayers = 0;
         int totalKills = 0;
         int totalDeaths = 0;
-        
+
         for (top.bearcabbage.twodimensional_bedwars.component.BedWarsPlayer p : team.getPlayers()) {
             if (p.getState() == 1) {
                 alivePlayers++;
@@ -405,19 +406,19 @@ public class GamePlayingTask {
             totalKills += p.getKills();
             totalDeaths += p.getDeaths();
         }
-        
+
         // Calculate K/D ratio (avoid division by zero)
         double kdRatio = (totalDeaths == 0) ? totalKills : (double) totalKills / totalDeaths;
-        
+
         return new TeamStats(alivePlayers, totalKills, totalDeaths, kdRatio);
     }
-    
+
     private static class TeamStats {
         final int alivePlayers;
         final int totalKills;
         final int totalDeaths;
         final double kdRatio;
-        
+
         TeamStats(int alivePlayers, int totalKills, int totalDeaths, double kdRatio) {
             this.alivePlayers = alivePlayers;
             this.totalKills = totalKills;
@@ -559,7 +560,8 @@ public class GamePlayingTask {
             return;
 
         net.minecraft.block.Block block = world.getBlockState(bedPos).getBlock();
-        boolean valid = (block instanceof net.minecraft.block.BedBlock) || (block == net.minecraft.block.Blocks.RESPAWN_ANCHOR);
+        boolean valid = (block instanceof net.minecraft.block.BedBlock)
+                || (block == net.minecraft.block.Blocks.RESPAWN_ANCHOR);
 
         if (!valid) {
             team.setBedDestroyed(arenaId, true);
@@ -579,8 +581,9 @@ public class GamePlayingTask {
             net.minecraft.util.math.BlockPos bedPos = team.getBedLocation(arenaId);
             if (bedPos != null) {
                 net.minecraft.block.BlockState state = world.getBlockState(bedPos);
-                 net.minecraft.block.Block block = state.getBlock();
-                if ((block instanceof net.minecraft.block.BedBlock) || (block == net.minecraft.block.Blocks.RESPAWN_ANCHOR)) {
+                net.minecraft.block.Block block = state.getBlock();
+                if ((block instanceof net.minecraft.block.BedBlock)
+                        || (block == net.minecraft.block.Blocks.RESPAWN_ANCHOR)) {
                     world.breakBlock(bedPos, false);
                 }
             }

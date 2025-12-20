@@ -1,34 +1,3 @@
-/bedwars start
-/bedwars join
-/bedwars leave
-/bedwars join
-/bedwars start
-/bedwars join
-/bedwars start
-/bedwars leave
-/bedwars start
-/bedwars join
-/bedwars start
-/bedwars join
-/bedwars start
-/bedwars join
-/bedwars start
-/bedwars join
-/bedwars start
-/bedwars join
-/bedwars start
-/bedwars leave
-/bedwars join
-/bedwars start
-/bedwars join
-/gamemode creative
-/tick rate 2000
-/tick rate 20
-/bedwars join
-/bedwars start
-/bedwars join
-/bedwars start
-/bedwars join
 /tp ~400 ~ ~
 /give @a minecraft:wooden_pickaxe
 /tick rate 200
@@ -48,3 +17,34 @@
 /tick rate 20
 /tick rate 2000
 /tick rate 20
+/bedwars join
+/gamemode creative
+/gamemode survival
+/gamemode creative
+/gamemode survival
+/bedwars join
+/bedwars start
+/bedwars join
+/bedwars start
+/bedwars join
+/bedwars start
+/bedwars leave
+/bedwars join
+/bedwars start
+/bedwars join
+/bedwars start
+/bedwars leave
+/bedwars join
+/bedwars start
+/bedwars leave
+/bedwars join
+/kill
+/bedwars join
+/bedwars start
+/bedwars join
+/bedwars start
+/bedwars join
+/bedwars start
+/bedwars join
+/bedwars start
+/bedwars leave

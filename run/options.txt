@@ -54,7 +54,7 @@ highContrastBlockOutline:false
 narratorHotkey:true
 resourcePacks:["vanilla","fabric"]
 incompatibleResourcePacks:[]
-lastServer:localhost
+lastServer:mirror.bearcabbage.top:25567
 lang:zh_cn
 chatVisibility:0
 chatOpacity:1.0
