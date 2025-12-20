@@ -114,7 +114,11 @@ This ensures every game starts with a fresh, clean arena!
 
 A **Public Nether Portal** is located at the center of each arena (Overworld and Nether).
 *   **Function**: Instantly teleports you to the center of the *other* arena.
-*   **Timing**: It opens during specific events for 30 seconds (at 7:00, 15:00, 20:00) and permanently after 30:05.
+*   **Timing**: 
+    *   Opens at **7:00** for 30 seconds (closes at 7:30)
+    *   Opens at **15:00** for 30 seconds (closes at 15:30)
+    *   Opens at **20:00** for 30 seconds (closes at 20:30)
+    *   Opens **permanently at 30:05**
 *   **Strategy**: Use it to quickly invade the enemy dimension without needing a personal portal!
 
 ### Bed & Respawn Anchor Mechanics
@@ -133,9 +137,9 @@ During the game, a sidebar scoreboard displays important information:
 *   **Next Event**: Shows the upcoming game event and countdown timer
 *   **Team Status**: For each team:
     *   Team name and color
-    *   Bed status: ✓ (intact) or ✗ (destroyed) for each arena
-    *   Number of alive players
-*   **Your Stats**: Personal kill/death statistics
+    *   Bed status: ✓ (intact) or ✗ (destroyed) for each arena (displayed as [✓✓], [✓✗], [✗✓], or [✗✗])
+    *   Player distribution: P:X/Y where X = alive players in Overworld arena, Y = alive players in Nether arena
+    *   Team K/D statistics: Total team kills/deaths
 
 The scoreboard updates in real-time to keep you informed of the match status!
 
