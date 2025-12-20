@@ -30,16 +30,23 @@ For detailed gameplay guides and technical stats, please refer to:
 ## 🛠️ Installation
 
 ### Prerequisites
-*   **Minecraft**: Version 1.21.8
+*   **Minecraft**: Version 1.21.8 (Multi-version support available - see below)
 *   **Fabric Loader**: Version 0.18.2 or higher
-*   **Fabric API**: Latest version compatible with Minecraft 1.21.8
+*   **Fabric API**: Latest version compatible with your Minecraft version
 *   **Java**: Version 21 or higher
+
+### Multi-Version Support
+
+This mod now supports multiple Minecraft versions! Download the appropriate JAR for your server version:
+*   `two-dimensional-bedwars-1.21.8-x.x.x.jar` - For Minecraft 1.21.8
+
+For information on adding support for additional versions or contributing version-specific builds, see [MULTIVERSION_GUIDE.md](MULTIVERSION_GUIDE.md).
 
 ### Server Installation Steps
 
-1.   Install **Fabric Loader** for your Minecraft server (1.21.8).
+1.   Install **Fabric Loader** for your Minecraft server.
 2.  Download and place **Fabric API** mod into your server's `mods` folder.
-3.  Drop the `two-dimensional-bedwars-x.x.x.jar` into your server's `mods` folder.
+3.  Drop the version-specific `two-dimensional-bedwars-{version}-x.x.x.jar` into your server's `mods` folder.
 4.  Start the server. On first launch, the mod will:
      *   Generate `config/bedwars_config.json` with default settings
      *   Create the custom dimension `two-dimensional-bedwars:arena`
@@ -162,25 +169,36 @@ See `CustomItemHandler.java` for implementation details.
 ### Build Commands
 
 ```bash
-# Build the mod
-./gradlew build
+# Build all Minecraft versions
+./gradlew buildAll
 
-# Run a test server
-./gradlew runServer
+# Build specific version
+./gradlew :v1_21_8:build
+
+# Run a test server (1.21.8)
+./gradlew :v1_21_8:runServer
+
+# Clean all builds
+./gradlew cleanAll
 
 # Generate IDE project files
 ./gradlew idea        # For IntelliJ IDEA
 ./gradlew eclipse     # For Eclipse
 ```
 
-The compiled JAR will be in `build/libs/two-dimensional-bedwars-x.x.x.jar`.
+The compiled JARs will be in:
+- `v1_21_8/build/libs/two-dimensional-bedwars-1.21.8-x.x.x.jar`
+- Additional version JARs in their respective module directories
+
+For detailed information on multi-version support and adding new Minecraft versions, see [MULTIVERSION_GUIDE.md](MULTIVERSION_GUIDE.md).
 
 ## 🧪 Development & Testing
 
 ### Running a Development Server
 
 ```bash
-./gradlew runServer
+# Run 1.21.8 development server
+./gradlew :v1_21_8:runServer
 ```
 
 The server will start with the mod loaded. Connect via `localhost:25565`.
@@ -188,7 +206,7 @@ The server will start with the mod loaded. Connect via `localhost:25565`.
 ### Debugging
 
 1.   Set up your IDE with the Fabric development environment
-2.  Use `./gradlew runServer --debug-jvm` for remote debugging
+2.  Use `./gradlew :v1_21_8:runServer --debug-jvm` for remote debugging
 3.  Attach your IDE debugger to port 5005
 
 ### Testing Commands

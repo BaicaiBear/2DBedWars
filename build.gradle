@@ -1,44 +1,72 @@
+buildscript {
+	repositories {
+		maven {
+			name = 'Fabric'
+			url = 'https://maven.fabricmc.net/'
+		}
+		gradlePluginPortal()
+	}
+	dependencies {
+		classpath "net.fabricmc:fabric-loom:1.8-SNAPSHOT"
+	}
+}
+
 plugins {
-	id 'net.fabricmc.fabric-loom-remap' version "${loom_version}"
 	id 'maven-publish'
+}
+
+apply plugin: 'fabric-loom'
+
+// Multi-version support: Load version-specific properties
+def mcVersion = project.findProperty('mcVersion') ?: project.minecraft_version
+def versionPropsFile = file("versions/${mcVersion}.properties")
+
+if (versionPropsFile.exists()) {
+	versionPropsFile.withInputStream {
+		def versionProps = new Properties()
+		versionProps.load(it)
+		versionProps.each { key, value ->
+			project.ext.set(key, value)
+		}
+	}
+	logger.info("Loaded version-specific properties for Minecraft ${mcVersion}")
+} else {
+	logger.warn("No version-specific properties found for Minecraft ${mcVersion}, using defaults from gradle.properties")
+	project.ext.yarn_mappings = project.yarn_mappings
+	project.ext.fabric_version = project.fabric_version
+	project.ext.loader_version = project.loader_version
 }
 
 version = project.mod_version
 group = project.maven_group
 
 base {
-	archivesName = project.archives_base_name
+	// Include Minecraft version in artifact name for clarity
+	archivesName = "${project.archives_base_name}-${mcVersion}"
 }
 
 repositories {
-	// Add repositories to retrieve artifacts from in here.
-	// You should only use this when depending on other mods because
-	// Loom adds the essential maven repositories to download Minecraft and libraries from automatically.
-	// See https://docs.gradle.org/current/userguide/declaring_repositories.html
-	// for more information about repositories.
-	// Player Data API
 	maven { url = 'https://maven.nucleoid.xyz' }
 }
 
 dependencies {
-	// To change the versions see the gradle.properties file
-	minecraft "com.mojang:minecraft:${project.minecraft_version}"
-	mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
-	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
-
-	// Fabric API. This is technically optional, but you probably want it anyway.
-	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
-
-	//Player Data API
-	modImplementation include("eu.pb4:player-data-api:0.8.0+1.21.6")
+	// Use version-specific or default properties
+	minecraft "com.mojang:minecraft:${mcVersion}"
+	mappings "net.fabricmc:yarn:${project.ext.yarn_mappings}:v2"
+	modImplementation "net.fabricmc:fabric-loader:${project.ext.loader_version}"
+	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.ext.fabric_version}"
 	
+	// Player Data API - version should match Minecraft version
+	modImplementation include("eu.pb4:player-data-api:0.8.0+${mcVersion}")
 }
 
 processResources {
 	inputs.property "version", project.version
+	inputs.property "minecraft_version", mcVersion
 
 	filesMatching("fabric.mod.json") {
-		expand "version": inputs.properties.version
+		expand "version": inputs.properties.version,
+		       "minecraft_version": inputs.properties.minecraft_version
 	}
 }
 
@@ -48,37 +76,50 @@ tasks.withType(JavaCompile).configureEach {
 }
 
 java {
-	// Loom will automatically attach sourcesJar to a RemapSourcesJar task and to the "build" task
-	// if it is present.
-	// If you remove this line, sources will not be generated.
 	withSourcesJar()
-
 	sourceCompatibility = JavaVersion.VERSION_21
 	targetCompatibility = JavaVersion.VERSION_21
 }
 
 jar {
-	inputs.property "archivesName", project.base.archivesName
-
 	from("LICENSE") {
-		rename { "${it}_${inputs.properties.archivesName}"}
+		rename { "${it}_${base.archivesName.get()}"}
 	}
 }
 
-// configure the maven publication
 publishing {
 	publications {
 		create("mavenJava", MavenPublication) {
-			artifactId = project.archives_base_name
+			artifactId = base.archivesName.get()
 			from components.java
 		}
 	}
 
-	// See https://docs.gradle.org/current/userguide/publishing_maven.html for information on how to set up publishing.
 	repositories {
-		// Add repositories to publish to here.
-		// Notice: This block does NOT have the same function as the block in the top level.
-		// The repositories here will be used for publishing your artifact, not for
-		// retrieving dependencies.
+		// Add repositories to publish to here
+	}
+}
+
+// Tasks for building specific versions
+task buildAllVersions {
+	group = 'build'
+	description = 'Builds mod for all configured Minecraft versions'
+	
+	doLast {
+		def versionsDir = file('versions')
+		if (versionsDir.exists()) {
+			versionsDir.listFiles().findAll { it.name.endsWith('.properties') }.each { versionFile ->
+				def versionName = versionFile.name.replaceAll('\\.properties$', '')
+				println "Building for Minecraft ${versionName}..."
+				exec {
+					commandLine './gradlew', 'clean', 'build', "-PmcVersion=${versionName}"
+				}
+			}
+		} else {
+			println "No versions directory found. Building default version only."
+			exec {
+				commandLine './gradlew', 'clean', 'build'
+			}
+		}
 	}
 }
