@@ -2,6 +2,10 @@
 
 Welcome to **2-Dimensional BedWars**, a unique twist on the classic minigame where you must defend bases in two parallel dimensions simultaneously!
 
+> *"Two arenas. One team. Defend everywhere, attack anywhere."*
+
+Unlike traditional BedWars, your team must master **dual-dimension warfare**—splitting forces between Overworld and Nether arenas, each with unique resources. When enemies strike one dimension, will you have defenders in the other? This constant tactical dance of distribution and coordination makes every match a thrilling strategic challenge!
+
 ## 📋 Table of Contents
 
 ### Essential Information
@@ -114,7 +118,11 @@ This ensures every game starts with a fresh, clean arena!
 
 A **Public Nether Portal** is located at the center of each arena (Overworld and Nether).
 *   **Function**: Instantly teleports you to the center of the *other* arena.
-*   **Timing**: It opens during specific events for 30 seconds (at 7:00, 15:00, 20:00) and permanently after 30:05.
+*   **Timing**: 
+    *   Opens at **7:00** for 30 seconds (closes at 7:30)
+    *   Opens at **15:00** for 30 seconds (closes at 15:30)
+    *   Opens at **20:00** for 30 seconds (closes at 20:30)
+    *   Opens **permanently at 30:05**
 *   **Strategy**: Use it to quickly invade the enemy dimension without needing a personal portal!
 
 ### Bed & Respawn Anchor Mechanics
@@ -133,9 +141,9 @@ During the game, a sidebar scoreboard displays important information:
 *   **Next Event**: Shows the upcoming game event and countdown timer
 *   **Team Status**: For each team:
     *   Team name and color
-    *   Bed status: ✓ (intact) or ✗ (destroyed) for each arena
-    *   Number of alive players
-*   **Your Stats**: Personal kill/death statistics
+    *   Bed status: ✓ (intact) or ✗ (destroyed) for each arena (displayed as [✓✓], [✓✗], [✗✓], or [✗✗])
+    *   Player distribution: P:X/Y where X = alive players in Overworld arena, Y = alive players in Nether arena
+    *   Team K/D statistics: Total team kills/deaths
 
 The scoreboard updates in real-time to keep you informed of the match status!
 
@@ -370,7 +378,7 @@ Events occur at specific times during the match to speed up gameplay and force a
 **A:** Visit the Nether arena's central Netherite generators. They spawn every 55s (Tier I), 40s (Tier II), or 30s (Tier III).
 
 ### Q: Can I place crafting tables or furnaces?
-**A:** No, crafting is **completely disabled** in-game. The crafting grid won't work. All items must be purchased from the shop.
+**A:** Crafting is **completely disabled** - using crafting tables won't work. Furnaces aren't available in the shop as placeable items (they only appear as icons for the Team Ore Generator upgrade). All items must be purchased from the shop.
 
 ### Q: Can I sleep in beds during the game?
 **A:** No, you cannot sleep in beds or set spawn points. Respawn points are fixed at your team's bases.

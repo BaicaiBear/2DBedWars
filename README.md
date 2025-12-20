@@ -18,7 +18,7 @@ The game world is split into two halves:
 *   **Resource Split**:
     *   **Overworld**: Iron, Diamond, Emerald.
     *   **Nether**: Quartz, Gold, Netherite.
-*   **Public Portal**: A central Nether Portal opens periodically (7:00, 15:00, 20:00, 30:05) for fast travel between arenas.
+*   **Public Portal**: A central Nether Portal opens periodically (7:00, 15:00, 20:00 for 30 seconds each, then permanently at 30:05) for fast travel between arenas.
 *   **Portal Travel**: Seamlessly travel between your bases using Nether Portals.
 *   **Server-Side Only**: No client mod required.
 
