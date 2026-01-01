@@ -259,6 +259,10 @@ public class Arena implements IArena {
                     if (!bwPlayer.restoreLobbyState(player)) {
                         restoreToSpawn(player);
                     }
+                } else {
+                    // If skipping restore (e.g. on disconnect), clear inventory to prevent item leaks
+                    // The backup will restore it on next join.
+                    player.getInventory().clear();
                 }
             }
             bwTeam.removeMember(uuid);
@@ -294,6 +298,8 @@ public class Arena implements IArena {
                     restoreToSpawn(player); // Fallback wipe
                     player.sendMessage(Text.translatable("two-dimensional-bedwars.backup.restore_fail"), false);
                 }
+            } else {
+                player.getInventory().clear();
             }
             cleanupPlayer(player);
             spectators.remove(uuid);

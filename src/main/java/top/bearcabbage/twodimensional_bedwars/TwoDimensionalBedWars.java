@@ -311,7 +311,8 @@ public class TwoDimensionalBedWars implements ModInitializer {
                 // Determine if player needs to be removed from Arena
                 // (Waiting, Spectator, or Playing)
                 // Arena's safe leavePlayer handles all cases or ignores if unknown.
-                gameArena.leavePlayer(player);
+                // Pass true to skip restore (teleportation), preventing crash on disconnect.
+                gameArena.leavePlayer(player, true);
             }
         });
 
