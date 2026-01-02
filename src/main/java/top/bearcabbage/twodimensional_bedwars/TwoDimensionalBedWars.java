@@ -2,36 +2,34 @@ package top.bearcabbage.twodimensional_bedwars;
 
 import java.util.EnumSet;
 
-import net.fabricmc.api.ModInitializer;
-import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
-import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
-import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
-import net.fabricmc.fabric.api.event.player.PlayerBlockBreakEvents;
-import net.minecraft.network.packet.s2c.play.PositionFlag;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.ActionResult;
-import net.minecraft.text.Text;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import eu.pb4.playerdata.api.PlayerDataApi;
 import eu.pb4.playerdata.api.storage.NbtDataStorage;
 import eu.pb4.playerdata.api.storage.PlayerDataStorage;
-import net.minecraft.registry.Registry;
-import net.minecraft.registry.Registries;
-import net.minecraft.util.Identifier;
-import top.bearcabbage.twodimensional_bedwars.world.SplitBiomeSource;
-import top.bearcabbage.twodimensional_bedwars.world.ArenaChunkGenerator;
-import top.bearcabbage.twodimensional_bedwars.game.ArenaManager;
-import top.bearcabbage.twodimensional_bedwars.command.BedWarsCommand;
-
-import top.bearcabbage.twodimensional_bedwars.component.Arena;
-import top.bearcabbage.twodimensional_bedwars.api.IArena.GameStatus;
-import top.bearcabbage.twodimensional_bedwars.mechanic.CustomItemHandler;
-
+import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
+import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
+import net.fabricmc.fabric.api.event.player.PlayerBlockBreakEvents;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.network.packet.s2c.play.PositionFlag;
+import net.minecraft.registry.Registries;
+import net.minecraft.registry.Registry;
+import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.ServerWorld;
+import net.minecraft.text.Text;
+import net.minecraft.util.ActionResult;
+import net.minecraft.util.Identifier;
+import top.bearcabbage.twodimensional_bedwars.api.IArena.GameStatus;
+import top.bearcabbage.twodimensional_bedwars.command.BedWarsCommand;
+import top.bearcabbage.twodimensional_bedwars.component.Arena;
+import top.bearcabbage.twodimensional_bedwars.game.ArenaManager;
+import top.bearcabbage.twodimensional_bedwars.mechanic.CustomItemHandler;
+import top.bearcabbage.twodimensional_bedwars.world.ArenaChunkGenerator;
+import top.bearcabbage.twodimensional_bedwars.world.SplitBiomeSource;
 
 public class TwoDimensionalBedWars implements ModInitializer {
     public static final String MOD_ID = "two-dimensional-bedwars";
@@ -285,6 +283,25 @@ public class TwoDimensionalBedWars implements ModInitializer {
                     }
                     return ActionResult.PASS;
                 });
+
+
+
+
+        net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents.ALLOW_DAMAGE.register((entity, source, amount) -> {
+            if (entity instanceof ServerPlayerEntity victim && source.getAttacker() instanceof ServerPlayerEntity attacker) {
+                if (ArenaManager.getInstance().getArena() instanceof Arena gameArena) {
+                    if (gameArena.getStatus() == GameStatus.PLAYING) {
+                         top.bearcabbage.twodimensional_bedwars.api.ITeam t1 = gameArena.getTeam(attacker);
+                         top.bearcabbage.twodimensional_bedwars.api.ITeam t2 = gameArena.getTeam(victim);
+
+                         if (t1 != null && t2 != null && t1.getName().equals(t2.getName())) {
+                             return false; // Cancel damage
+                         }
+                    }
+                }
+            }
+            return true;
+        });
 
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
             ServerPlayerEntity player = handler.getPlayer();

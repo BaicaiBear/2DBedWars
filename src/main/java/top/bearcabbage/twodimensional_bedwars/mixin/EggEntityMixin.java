@@ -5,8 +5,6 @@ import net.minecraft.entity.EntityType;
 import net.minecraft.entity.projectile.ProjectileEntity;
 import net.minecraft.entity.projectile.thrown.EggEntity;
 import net.minecraft.entity.projectile.thrown.ThrownEntity;
-import net.minecraft.entity.projectile.thrown.ThrownItemEntity;
-import net.minecraft.item.ItemStack;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
@@ -17,7 +15,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import top.bearcabbage.twodimensional_bedwars.api.ITeam;
 import top.bearcabbage.twodimensional_bedwars.component.Arena;
 import top.bearcabbage.twodimensional_bedwars.game.ArenaManager;
-import top.bearcabbage.twodimensional_bedwars.mechanic.CustomItemHandler;
 
 @Mixin(ThrownEntity.class)
 public abstract class EggEntityMixin extends ProjectileEntity {
@@ -26,7 +23,7 @@ public abstract class EggEntityMixin extends ProjectileEntity {
         super(entityType, world);
     }
 
-    @Inject(method = "tick", at = @At("TAIL"))
+    @Inject(method = "tick()V", at = @At("TAIL"))
     private void tickBridgeEgg(CallbackInfo ci) {
         if (this.getWorld().isClient)
             return;
@@ -39,7 +36,7 @@ public abstract class EggEntityMixin extends ProjectileEntity {
         net.minecraft.util.Identifier dimId = this.getWorld().getRegistryKey().getValue();
 
         if (dimId.getPath().equals("arena")) {
-            if (this.age > 1) {
+            if (this.age > 10) {
                 Vec3d currentPos = this.getPos();
                 Vec3d velocity = this.getVelocity();
                 Vec3d prevPos = currentPos.subtract(velocity);

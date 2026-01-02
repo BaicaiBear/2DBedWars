@@ -271,7 +271,7 @@ public class GameConfig {
         list.add(new ShopEntry(2, "minecraft:ladder", 16, "minecraft:iron_ingot", 4, null));
         list.add(new ShopEntry(3, "minecraft:oak_planks", 16, "minecraft:iron_ingot", 16, null));
 
-        list.add(new ShopEntry(5, "minecraft:glass", 8, "minecraft:quartz", 12,
+        list.add(new ShopEntry(11, "minecraft:glass", 8, "minecraft:iron_ingot", 12,
                 "two-dimensional-bedwars.shop.item.blast_proof_glass", "BLAST_PROOF_GLASS"));
         list.add(new ShopEntry(6, "minecraft:end_stone", 12, "minecraft:quartz", 24, null));
         list.add(new ShopEntry(7, "minecraft:obsidian", 4, "minecraft:netherite_ingot", 4, null));
@@ -282,7 +282,7 @@ public class GameConfig {
                 "two-dimensional-bedwars.shop.item.water_bucket", "WATER_BUCKET"));
         list.add(new ShopEntry(10, "minecraft:sponge", 4, "minecraft:iron_ingot", 48,
                 "two-dimensional-bedwars.shop.item.sponge", "SPONGE"));
-        list.add(new ShopEntry(11, "minecraft:fire_charge", 1, "minecraft:iron_ingot", 32,
+        list.add(new ShopEntry(5, "minecraft:fire_charge", 1, "minecraft:quartz", 32,
                 "two-dimensional-bedwars.shop.item.fireball", "FIREBALL"));
         list.add(new ShopEntry(12, "minecraft:egg", 1, "minecraft:emerald", 1,
                 "two-dimensional-bedwars.shop.item.bridge_egg", "BRIDGE_EGG"));

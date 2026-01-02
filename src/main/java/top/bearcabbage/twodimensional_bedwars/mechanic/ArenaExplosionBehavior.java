@@ -56,7 +56,11 @@ public class ArenaExplosionBehavior extends ExplosionBehavior {
                 boolean isPlayerPlaced = gameArena.getData().isBlockPlayerPlaced(pos);
 
                 // Allow Beds to be destroyed (Requested update)
-                if (state.getBlock() instanceof net.minecraft.block.BedBlock) {
+                // BUT protect from friendly fireballs
+                if (state.getBlock() instanceof net.minecraft.block.BedBlock || state.isOf(net.minecraft.block.Blocks.RESPAWN_ANCHOR)) {
+                    if (shouldProtectBed(gameArena, explosion, pos, world)) {
+                        return false;
+                    }
                     return true;
                 }
 
@@ -70,4 +74,50 @@ public class ArenaExplosionBehavior extends ExplosionBehavior {
 
         return true;
     }
+
+    private boolean shouldProtectBed(Arena arena, Explosion explosion, BlockPos pos, BlockView world) {
+         net.minecraft.entity.Entity source = explosion.getEntity();
+         if (source instanceof net.minecraft.entity.projectile.FireballEntity fireball 
+             && fireball.getOwner() instanceof net.minecraft.entity.player.PlayerEntity player) {
+             
+             if (player instanceof net.minecraft.server.network.ServerPlayerEntity serverPlayer) {
+                 top.bearcabbage.twodimensional_bedwars.api.ITeam team = arena.getTeam(serverPlayer);
+                 if (team instanceof top.bearcabbage.twodimensional_bedwars.component.BedWarsTeam bwTeam) {
+                     return isTeamBedOrAnchor(pos, bwTeam, world);
+                 }
+             }
+         }
+         return false;
+    }
+
+    private boolean isTeamBedOrAnchor(BlockPos pos, top.bearcabbage.twodimensional_bedwars.component.BedWarsTeam playerTeam, BlockView world) {
+        if (isLocationMatch(pos, playerTeam.getBedLocation(1), world)) return true;
+        if (isLocationMatch(pos, playerTeam.getBedLocation(2), world)) return true;
+        return false;
+    }
+
+    private boolean isLocationMatch(BlockPos target, BlockPos teamBedPos, BlockView world) {
+        if (teamBedPos == null) return false;
+        if (target.equals(teamBedPos)) return true;
+        
+        BlockState state = world.getBlockState(teamBedPos);
+        if (state.getBlock() instanceof net.minecraft.block.BedBlock) {
+            net.minecraft.util.math.Direction facing = state.get(net.minecraft.block.BedBlock.FACING);
+            // Foot or Head? We just check the other part.
+            // Actually, we need to know WHICH part teamBedPos is to know where the other part is.
+             net.minecraft.block.enums.BedPart part = state.get(net.minecraft.block.BedBlock.PART);
+            
+            BlockPos otherPartPos;
+            if (part == net.minecraft.block.enums.BedPart.FOOT) {
+                otherPartPos = teamBedPos.offset(facing); 
+            } else {
+                otherPartPos = teamBedPos.offset(facing.getOpposite());
+            }
+            
+            if (target.equals(otherPartPos)) return true;
+        }
+        return false;
+    }
+
+
 }
